@@ -4,7 +4,7 @@
 #include <Arduino.h>
 #include <SettingsGyver.h>
 #include "logger.h"
-// #include "matrix.h"
+#include "cube.h"
 
 DB_KEYS(
     kk,
@@ -38,60 +38,70 @@ struct Data
 {
     String symbol = "";
     uint32_t color = 0xff0000;
-    uint8_t selectedMatrix = 1;
 };
 
 Data data;
 bool cfm_f, notice_f, alert_f;
-
+bool onTop = true, onBottom = true, onFront = true, onBack = true, onLeft = true, onRight = true;
 void build(sets::Builder &b)
 {
     {
         {
-            sets::Menu pixelControl(b, "Pixel Controll");
+            sets::Menu pixelControl(b, "Print Symbol");
             b.Input("Symbol", &data.symbol);
             b.Color("", &data.color);
-            b.Select("", "1;2;3;4;5;6", &data.selectedMatrix);
             if (b.Button("Submit"))
             {
-                String m;
-                m += "Symbol: ";
-                m += data.symbol;
-                m += "\nColor: ";
-                m += data.color;
-                m += "\nMatrix: ";
-                m += data.selectedMatrix;
-                logger.println(m.c_str());
-
-                // matrices[data.selectedMatrix].drawCharacter(data.symbol.c_str(), data.color);
+                cube->effectSymbol.print(data.symbol.c_str(), data.color);
+                cube->setActiveEffect(CubeEffects::SYMBOL);
             }
         }
 
-        sets::Menu matricesMenu(b, "Matrices");
+        sets::Menu facesMenu(b, "Faces");
 
         {
-            sets::Menu matrix1(b, "Matrix 1");
-            b.Switch("", nullptr);
+            sets::Menu front(b, "Front");
+            if (b.Switch(H("ON/OFF-Front"), "ON/OFF", &onFront))
+            {
+                logger.println("on/off front");
+                logger.println(onFront);
+                onFront ? cube->front.turnOn() : cube->front.turnOff();
+            }
         }
         {
-            sets::Menu matrix2(b, "Matrix 2");
-            b.Switch("", nullptr);
+            sets::Menu back(b, "Back");
+            if (b.Switch(H("ON/OFF-Back"), "ON/OFF", &onBack))
+            {
+                onBack ? cube->back.turnOn() : cube->front.turnOff();
+            }
         }
         {
-            sets::Menu matrix3(b, "Matrix 3");
-            b.Switch("", nullptr);
+            sets::Menu left(b, "Left");
+            if (b.Switch(H("ON/OFF-Left"), "ON/OFF", &onLeft))
+            {
+                onLeft ? cube->left.turnOn() : cube->front.turnOff();
+            }
         }
         {
-            sets::Menu matrix4(b, "Matrix 4");
-            b.Switch("", nullptr);
+            sets::Menu right(b, "Right");
+            if (b.Switch(H("ON/OFF-Right"), "ON/OFF", &onRight))
+            {
+                onRight ? cube->right.turnOn() : cube->front.turnOff();
+            }
         }
         {
-            sets::Menu matrix5(b, "Matrix 5");
-            b.Switch("", nullptr);
+            sets::Menu top(b, "Top");
+            if (b.Switch(H("ON/OFF-Top"), "ON/OFF", &onTop))
+            {
+                onTop ? cube->top.turnOn() : cube->front.turnOff();
+            }
         }
         {
-            sets::Menu matrix6(b, "Matrix 6");
-            b.Switch("", nullptr);
+            sets::Menu bottom(b, "Bottom");
+            if (b.Switch(H("ON/OFF-Bottom"), "ON/OFF", &onBottom))
+            {
+                onBottom ? cube->bottom.turnOn() : cube->front.turnOff();
+            }
         }
     }
 

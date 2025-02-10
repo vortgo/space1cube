@@ -17,6 +17,6 @@
 #define PIN_3 19
 #define PIN_4 25
 #define PIN_5 33
-#define PIN_6 32
+#define PIN_6 13
 
 #endif

@@ -8,88 +8,87 @@
 
 using Pattern = std::array<uint8_t, 7>;
 
-std::vector<Matrix> matrices;
-Adafruit_NeoPixel displays[NUM_MATRICES] = {
-    Adafruit_NeoPixel(NUM_LEDS, PIN_1, NEO_GRB + NEO_KHZ800),
-    Adafruit_NeoPixel(NUM_LEDS, PIN_2, NEO_GRB + NEO_KHZ800),
-    Adafruit_NeoPixel(NUM_LEDS, PIN_3, NEO_GRB + NEO_KHZ800),
-    Adafruit_NeoPixel(NUM_LEDS, PIN_4, NEO_GRB + NEO_KHZ800),
-    Adafruit_NeoPixel(NUM_LEDS, PIN_5, NEO_GRB + NEO_KHZ800),
-    Adafruit_NeoPixel(NUM_LEDS, PIN_6, NEO_GRB + NEO_KHZ800)};
-
-void initMatrices()
+Matrix::Matrix(Adafruit_NeoPixel &display, uint8_t width, uint8_t height, bool on)
+    : display(display), width(width), height(height), on(on)
 {
-// Инициализация матриц
-for (int i = 0; i < NUM_MATRICES; ++i)
-{
-    matrices.push_back(Matrix(displays[i], WIDTH, HEIGHT));
-}
-
-    //    matrices[0].display.setPixelColor(3, matrices[0].display.gamma32(0x004CFF));
-    //    matrices[0].display.show();
-
-
-    //    matrices[2].display.setPixelColor(2, matrices[2].display.gamma32(0x004CFF));
-    //    matrices[2].display.show();
-
-    //    matrices[3].display.setPixelColor(2, matrices[3].display.gamma32(0x004CFF));
-    //    matrices[3].display.show();
-}
-
-Matrix::Matrix(Adafruit_NeoPixel &display, uint8_t width, uint8_t height)
-    : display(display), width(width), height(height)
-{
-    display.begin(); 
-    clear();
+    display.begin();
+    display.clear();
+    
+    pixels.reserve(width * height);
+    for (uint8_t y = 0; y < height; ++y) {
+        for (uint8_t x = 0; x < width; ++x) {
+            // Создаем пиксель с координатами (x, y), начальным цветом черный и яркостью 255
+            pixels.push_back(Pixel(x, y, 0x000000, 255));
+        }
+    }
 }
 
 void Matrix::setPixel(uint8_t x, uint8_t y, uint32_t color, uint8_t brightness) {
     if (x < width && y < height) {
         uint16_t index = getIndex(x, y);
-        uint8_t r = (color >> 16) & 0xFF;
-        uint8_t g = (color >> 8) & 0xFF;
-        uint8_t b = color & 0xFF;
-        r = (r * brightness) / 255;
-        g = (g * brightness) / 255;
-        b = (b * brightness) / 255;
-        display.setPixelColor(index, display.Color(r, g, b));
+        pixels[index].setColor(color);
+        pixels[index].setBrightness(brightness);
     }
 }
 
-void Matrix::drawCharacter(const std::string &character, uint32_t color)
-{
-    clear();
-
-    int colOffset = 1;
-    int rowOffset = 1;
-
-    auto it = charPatterns.find(character);
-    if (it == charPatterns.end())
-    {
-        std::string message = "Символ отсутствует в алфавите: " + character;
-        logger.println(message.c_str());
-        return;
+// Перегруженный метод, принимающий brightness как float (0.0 - 1.0)
+void Matrix::setPixel(uint8_t x, uint8_t y, uint32_t color, float brightness) {
+    // Ограничиваем значение brightness в пределах [0.0, 1.0]
+    if (brightness < 0.0f) {
+        brightness = 0.0f;
+    } else if (brightness > 1.0f) {
+        brightness = 1.0f;
     }
+    
+    // Преобразуем в диапазон 0-255
+    uint8_t b = static_cast<uint8_t>(brightness * 255.0f);
+    // Вызываем исходную версию метода
+    setPixel(x, y, color, b);
+}
 
-    const Pattern &charPattern = it->second;
-    for (int r = 0; r < 7; r++)
-    {
-        uint8_t rowPattern = charPattern[r];
-        for (int c = 0; c < 5; c++)
-        {
-            if (rowPattern & (1 << (4 - c)))
-            {
-                int x = c + colOffset;
-                int y = r + rowOffset;
-                int index = y * width + x;
-                if (index < width * height)
-                {
-                    setPixel(x, y, color);
-                }
-            }
+void Matrix::clear(){
+    for (uint8_t index = 0; index < height *width ; ++index) {
+            pixels[index].setColor(0x000000);
+            pixels[index].setBrightness(0);
+        }
+}
+
+void Matrix::render() {
+    if (!on) {
+        return;
+    } 
+
+    // Пробегаем по всем пикселям и передаем их состояние на физический дисплей
+    for (uint8_t y = 0; y < height; ++y) {
+        for (uint8_t x = 0; x < width; ++x) {
+            uint16_t index = getIndex(x, y);
+            uint8_t r = (pixels[index].getColor() >> 16) & 0xFF;
+            uint8_t g = (pixels[index].getColor() >> 8) & 0xFF;
+            uint8_t b = pixels[index].getColor() & 0xFF;
+            r = (r * pixels[index].getBrightness()) / 255;
+            g = (g * pixels[index].getBrightness()) / 255;
+            b = (b * pixels[index].getBrightness()) / 255;
+            display.setPixelColor(index, display.gamma32(display.Color(r, g, b)));
         }
     }
-    show();
+    display.show();
+}
+
+Pixel& Matrix::getPixel(uint8_t x, uint8_t y) {
+    uint16_t index = getIndex(x, y);
+    return pixels[index];
+}
+
+void Matrix::turnOn(){
+    on = true;
+    display.setBrightness(255);
+    display.show();
+}
+
+void Matrix::turnOff(){
+    on = false;
+    display.setBrightness(0);
+    display.show();
 }
 
 uint16_t Matrix::getIndex(uint8_t x, uint8_t y)
