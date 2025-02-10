@@ -40,15 +40,14 @@ class EffectBeatingHeart: public Effect {
     public:  
         // Метод обновления эффекта, deltaTime – прошедшее время в секундах с прошлого обновления.
         void render(Cube &cube, unsigned long deltaTime) override ;
-        float beatPeriod = 0.8f;            // Период полного цикла биения
+        float beatPeriod = 1.0f;            // Период полного цикла биения
         uint32_t color = 0x00FF00;
     
     private:
         void setOnFace(Matrix &f);
         float accumulatedTime;       // Накопленное время в секундах
-        float contractionFraction = 0.2f;   // Доля цикла для фазы сокращения (систола)
-        float expansionFraction  = 0.3f;     // Доля цикла для фазы расширения (диастола)
-        float smallHeartFactor = 0.7f;
+        float contractionFraction = 0.3f;   // Доля цикла для фазы сокращения (систола)
+        float expansionFraction  = 0.4f;     // Доля цикла для фазы расширения (диастола)
     // Определяем шаблон для большого сердца – заполненный рисунок 8×8
     int bigHeart[8][8] = {
         {0, 1, 1, 0, 0, 1, 1, 0},
@@ -61,18 +60,6 @@ class EffectBeatingHeart: public Effect {
         {0, 0, 0, 0, 0, 0, 0, 0}
     };
     
-    // Определяем шаблон для маленького сердца – оно занимает меньшую область, оставляя рамку вокруг
-   int smallHeart[8][8] = {
-        {0, 0, 0, 0, 0, 0, 0, 0},
-        {0, 0, 1, 1, 1, 1, 0, 0},
-        {0, 1, 1, 1, 1, 1, 1, 0},
-        {0, 1, 1, 1, 1, 1, 1, 0},
-        {0, 1, 1, 1, 1, 1, 1, 0},
-        {0, 0, 1, 1, 1, 1, 0, 0},
-        {0, 0, 0, 0, 0, 0, 0, 0},
-        {0, 0, 0, 0, 0, 0, 0, 0}
-    };
-
     float blend;
 };    
 
