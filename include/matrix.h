@@ -28,6 +28,12 @@ public:
     void turnOff();
     void clear();
 
+    void clearColumn(uint8_t x){
+        for (uint8_t y = 0; y < height; y++){
+            setPixel(x, y, 0x000000, 0.0f);
+        }
+    }
+
 private:
     uint8_t width, height;
 

@@ -20,7 +20,7 @@ void setup()
   initCube();
 
 
-  cube->setActiveEffect(CubeEffects::HEART);
+  cube->setActiveEffect(CubeEffects::FALING_STAR);
 }
 
 void loop()

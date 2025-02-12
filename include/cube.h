@@ -16,6 +16,7 @@ enum class CubeFace {
 enum class CubeEffects {
     SYMBOL,
     HEART,
+    FALING_STAR,
     BLINK_CUBE
 };
 
@@ -35,6 +36,45 @@ class Effect {
        unsigned long renderTime = 10;
 };
 
+class EffectFallingStar : public Effect {
+    public:
+        // Конструктор
+        EffectFallingStar();
+    
+        // Настройки эффекта
+        uint32_t colorFront = 0xFFFFFF;           // Цвет звезды
+        uint32_t colorBack = 0xFFF00F;  
+        uint32_t colorTop = 0xF00FFF;  
+        uint32_t colorBottom = 0x00FFFF;  
+        uint32_t colorLeft = 0xFFFF00;  
+        uint32_t colorRight = 0xFF00FF;  
+
+        float fallSpeed = 0.05f;              // Скорость падения
+        uint8_t tailLength = 4;              // Длина хвоста
+        unsigned long minDelay = 50;        // Минимальная задержка между звездами
+        unsigned long maxDelay = 600;        // Максимальная задержка между звездами
+    
+        void render(Cube &cube, unsigned long deltaTime) override;
+    
+    private:
+    struct Star {
+        int y;                      // Текущая вертикальная позиция звезды (0..8+tailLength)
+        float speed;                // Время между шагами в секундах (например, 0.5 для 500 мс)
+        unsigned long lastUpdate;   // Счетчик времени, накопленный для движения звезды
+        bool active;                // Флаг: активна ли звезда (есть на экране)
+    };
+    
+        // Массив для хранения звезд
+        std::vector<Star> stars;
+    
+        // Таймеры для каждого столбца (время задержки для следующей звезды)
+        long columnTimers[8] = {0};
+    
+        void addStar(int column, bool active);            // Добавить новую звезду в конкретный столбец
+        void moveStars(Cube &cube, unsigned long deltaTime); // Обновить позиции звезд
+        void initializeColumnDelay(int column);
+    };
+    
 
 class EffectBeatingHeart: public Effect {
     public:  
@@ -94,6 +134,7 @@ public:
 
     EffectSymbol effectSymbol = EffectSymbol();
     EffectBeatingHeart breathingHeart = EffectBeatingHeart();
+    EffectFallingStar fallingStar = EffectFallingStar();
 
     void setActiveEffect(CubeEffects e){
         switch (e)
@@ -104,6 +145,9 @@ public:
         case CubeEffects::HEART:
             activeEffect = &breathingHeart;
             break;
+        case CubeEffects::FALING_STAR:
+            activeEffect = &fallingStar;
+        break;
         default:
             break;
         }
@@ -152,6 +196,16 @@ public:
      * @param brightness Яркость пикселя (0–255).
      */
     void setPixel(CubeFace face, uint8_t x, uint8_t y, uint32_t color, uint8_t brightness = 255);
+
+    // отдать матрицы для итерации 
+    // std::vector<std::reference_wrapper<Matrix>> faces = cube.getFaces();
+    // // Итерируем по вектору и вызываем метод display() для каждой грани
+    // for (auto &face : faces) {
+    //    
+    // }
+     std::vector<std::reference_wrapper<Matrix>> getFaces() {
+        return {front, back, left, right, top, bottom};
+    }
 
 private:
     /**

@@ -72,35 +72,35 @@ void build(sets::Builder &b)
             sets::Menu back(b, "Back");
             if (b.Switch(H("ON/OFF-Back"), "ON/OFF", &onBack))
             {
-                onBack ? cube->back.turnOn() : cube->front.turnOff();
+                onBack ? cube->back.turnOn() : cube->back.turnOff();
             }
         }
         {
             sets::Menu left(b, "Left");
             if (b.Switch(H("ON/OFF-Left"), "ON/OFF", &onLeft))
             {
-                onLeft ? cube->left.turnOn() : cube->front.turnOff();
+                onLeft ? cube->left.turnOn() : cube->left.turnOff();
             }
         }
         {
             sets::Menu right(b, "Right");
             if (b.Switch(H("ON/OFF-Right"), "ON/OFF", &onRight))
             {
-                onRight ? cube->right.turnOn() : cube->front.turnOff();
+                onRight ? cube->right.turnOn() : cube->right.turnOff();
             }
         }
         {
             sets::Menu top(b, "Top");
             if (b.Switch(H("ON/OFF-Top"), "ON/OFF", &onTop))
             {
-                onTop ? cube->top.turnOn() : cube->front.turnOff();
+                onTop ? cube->top.turnOn() : cube->top.turnOff();
             }
         }
         {
             sets::Menu bottom(b, "Bottom");
             if (b.Switch(H("ON/OFF-Bottom"), "ON/OFF", &onBottom))
             {
-                onBottom ? cube->bottom.turnOn() : cube->front.turnOff();
+                onBottom ? cube->bottom.turnOn() : cube->bottom.turnOff();
             }
         }
     }
