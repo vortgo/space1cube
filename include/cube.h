@@ -42,15 +42,19 @@ class EffectFallingStar : public Effect {
         EffectFallingStar();
     
         // Настройки эффекта
-        uint32_t colorFront = 0xFFFFFF;           // Цвет звезды
-        uint32_t colorBack = 0xFFF00F;  
-        uint32_t colorTop = 0xF00FFF;  
-        uint32_t colorBottom = 0x00FFFF;  
-        uint32_t colorLeft = 0xFFFF00;  
-        uint32_t colorRight = 0xFF00FF;  
+        uint32_t colorFront = 0xFF5733;  // Красный (R: 255, G: 87, B: 51)
+        uint32_t colorBack = 0x33FF57;   // Зелёный (R: 51, G: 255, B: 87)
+        uint32_t colorTop = 0x3357FF;    // Синий (R: 51, G: 87, B: 255)
+        uint32_t colorBottom = 0xFF33A1; // Розовый (R: 255, G: 51, B: 161)
+        uint32_t colorLeft = 0xF5A623;   // Оранжевый (R: 245, G: 166, B: 35)
+        uint32_t colorRight = 0x8B33FF;  // Фиолетовый (R: 139, G: 51, B: 255)
 
-        float fallSpeed = 0.05f;              // Скорость падения
-        uint8_t tailLength = 4;              // Длина хвоста
+        std::vector<uint32_t> colors =  {
+           colorFront, colorBack, colorLeft, colorRight, colorTop, colorBottom
+        };
+
+        float fallSpeed = 0.03f;              // Скорость падения
+        uint8_t tailLength = 3;              // Длина хвоста
         unsigned long minDelay = 50;        // Минимальная задержка между звездами
         unsigned long maxDelay = 600;        // Максимальная задержка между звездами
     
@@ -71,7 +75,6 @@ class EffectFallingStar : public Effect {
         long columnTimers[8] = {0};
     
         void addStar(int column, bool active);            // Добавить новую звезду в конкретный столбец
-        void moveStars(Cube &cube, unsigned long deltaTime); // Обновить позиции звезд
         void initializeColumnDelay(int column);
     };
     

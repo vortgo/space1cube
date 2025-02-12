@@ -34,38 +34,8 @@ EffectFallingStar::EffectFallingStar()
 
 void EffectFallingStar::render(Cube &cube, unsigned long deltaTime)
 {
-    // Очищаем куб перед отрисовкой нового кадра
-
-    // Обновляем положение звезд и рисуем их
-    moveStars(cube, deltaTime);
-
-    // Рендерим обновления на кубе
-    cube.render();
-}
-
-void EffectFallingStar::initializeColumnDelay(int column)
-{
-    // Генерируем случайную задержку для столбца (между minDelay и maxDelay)
-    // Используем тип long для возможности отрицательных значений при вычитании
-    columnTimers[column] = static_cast<long>(rand() % (maxDelay - minDelay + 1) + minDelay);
-}
-
-void EffectFallingStar::addStar(int column, bool active)
-{
-    // Создаём новую звезду для столбца
-    Star newStar;
-    newStar.y = 0; // Звезда появляется в верхней строке
-    float randomValue = getRandomFloatInRange(0.0f, 0.1f);
-    newStar.speed = fallSpeed + randomValue; // Скорость падения (например, 0.5 сек на шаг)
-    newStar.lastUpdate = 0;
-    newStar.active = true; // Помечаем звезду как активную
-
-    // Сохраняем звезду в массиве для данного столбца
-    stars[column] = newStar;
-}
-
-void EffectFallingStar::moveStars(Cube &cube, unsigned long deltaTime)
-{
+  
+ std::vector<std::reference_wrapper<Matrix>> faces = cube.getFaces();
     for (int i = 0; i < 8; ++i)
     {
         // Если звезда в столбце НЕ активна, идёт отсчёт задержки
@@ -88,12 +58,16 @@ void EffectFallingStar::moveStars(Cube &cube, unsigned long deltaTime)
             // Если накопилось достаточно времени для следующего шага (звезда двигается с периодом speed * 1000 мс)
             if (stars[i].lastUpdate >= stars[i].speed * 1000)
             {
-                cube.front.clearColumn(i);
+                for (int f = 0; f < faces.size(); f++) {
+                    faces[f].get().clearColumn(i);
+                }
 
                 // Рисуем саму звезду (если она в пределах видимой области)
                 if (stars[i].y < 8)
                 {
-                    cube.setPixel(CubeFace::FRONT, i, stars[i].y, color);
+                    for (int f = 0; f < faces.size(); f++) {
+                        faces[f].get().setPixel(i, stars[i].y, colors[f], 1.0f);
+                    }
                 }
 
                 // Рисуем хвост с эффектом затухания
@@ -103,9 +77,10 @@ void EffectFallingStar::moveStars(Cube &cube, unsigned long deltaTime)
                     if (tailY >= 0 && tailY < 8)
                     { // Убедимся, что хвост не выходит за пределы матрицы
                         // Чем дальше элемент хвоста, тем меньше яркость
-                        float brightness = 0.8f - (float(j - 1) / float(tailLength - 1)) * (0.8f - 0.1f);
-                        Serial.println(brightness);
-                        cube.front.setPixel(i, tailY, color, brightness);
+                        float brightness = 0.8f - (float(j - 1) / float(tailLength - 1)) * (0.8f - 0.25f);
+                        for (int f = 0; f < faces.size(); f++) {
+                            faces[f].get().setPixel(i, tailY, colors[f], brightness);
+                        }
                     }
                 }
                 // Сбрасываем накопленное время для звезды
@@ -127,4 +102,35 @@ void EffectFallingStar::moveStars(Cube &cube, unsigned long deltaTime)
             }
         }
     }
+
+
+
+
+
+
+
+
+    // Рендерим обновления на кубе
+    cube.render();
+}
+
+void EffectFallingStar::initializeColumnDelay(int column)
+{
+    // Генерируем случайную задержку для столбца (между minDelay и maxDelay)
+    // Используем тип long для возможности отрицательных значений при вычитании
+    columnTimers[column] = static_cast<long>(rand() % (maxDelay - minDelay + 1) + minDelay);
+}
+
+void EffectFallingStar::addStar(int column, bool active)
+{
+    // Создаём новую звезду для столбца
+    Star newStar;
+    newStar.y = 0; // Звезда появляется в верхней строке
+    float randomValue = getRandomFloatInRange(0.0f, 0.05f);
+    newStar.speed = fallSpeed + randomValue; // Скорость падения (например, 0.5 сек на шаг)
+    newStar.lastUpdate = 0;
+    newStar.active = true; // Помечаем звезду как активную
+
+    // Сохраняем звезду в массиве для данного столбца
+    stars[column] = newStar;
 }

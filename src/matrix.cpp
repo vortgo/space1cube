@@ -65,9 +65,13 @@ void Matrix::render() {
             uint8_t r = (pixels[index].getColor() >> 16) & 0xFF;
             uint8_t g = (pixels[index].getColor() >> 8) & 0xFF;
             uint8_t b = pixels[index].getColor() & 0xFF;
-            r = (r * pixels[index].getBrightness()) / 255;
-            g = (g * pixels[index].getBrightness()) / 255;
-            b = (b * pixels[index].getBrightness()) / 255;
+                     
+            // Пропорциональное уменьшение яркости
+            float brightnessFactor = pixels[index].getBrightness() / 255.0f * maxBrightness;
+            r = (r * brightnessFactor);
+            g = (g * brightnessFactor);
+            b = (b * brightnessFactor);
+
             display.setPixelColor(index, display.gamma32(display.Color(r, g, b)));
         }
     }

@@ -34,6 +34,7 @@ public:
         }
     }
 
+    float maxBrightness = 1.0f;
 private:
     uint8_t width, height;
 
