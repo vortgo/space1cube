@@ -17,23 +17,79 @@ enum class CubeEffects {
     SYMBOL,
     HEART,
     FALING_STAR,
+    SOUND_PEAKS,
     BLINK_CUBE
+};
+
+enum class Color : uint32_t {
+    BLUE = 0x0000FF,      // Синий
+    CYAN = 0x00FFFF,      // Циан
+    GREEN = 0x00FF00,     // Зеленый
+    YELLOW = 0xFFFF00,    // Желтый
+    CHARTREUSE = 0x7FFF00, // Хартрез
+    LIME = 0x00FF80,      // Лайм
+    SPRING_GREEN = 0x00FF7F, // Весенний зеленый
+    ORANGE = 0xFFA500,    // Оранжевый
+    RED = 0xFF0000,       // Красный
+    VIOLET = 0x8A2BE2     // Фиолетовый
 };
 
 class Cube;
 class Effect {
     public:
-    void tick(Cube &cube, unsigned long deltaTime) {
-        if (deltaTime < renderTime) {
+    void tick(Cube &cube) {
+        unsigned long currentTime = millis();
+        unsigned long delta = currentTime - lastTime;
+        if (delta < renderTime) {
             return;
         }
-        render(cube, deltaTime);
+        lastTime = currentTime;
+        render(cube, delta);
     }
 
     virtual void render(Cube &cube, unsigned long deltaTime);
 
     private: 
-       unsigned long renderTime = 10;
+        unsigned long lastTime = 0;
+        unsigned long renderTime = 10;
+};
+
+class EffectSoundLevel : public Effect {
+    public: 
+        EffectSoundLevel();
+
+        int basePeriod = 500;
+        int pauseTime = 500;
+    
+
+    //публичные параметры для конфигурации эффекта  и методы 
+    void render(Cube &cube, unsigned long deltaTime) override;
+    private: 
+
+    //внутрення реализация 
+   void  renderOneFace(Matrix &face,int i, uint32_t highestColor, uint32_t lowestColor  );
+    struct Peak {
+        int hight;
+        int low;
+        bool increase; 
+        int currentHeight;
+        int period;
+        int pauseTime;
+        unsigned long accumulatedPause;
+    };
+
+    unsigned long accumulatedTime = 0;
+
+    std::vector<Peak> peaks;
+
+    uint32_t colorFaces[6][2] = {
+        {0xFF0000, 0x00FF00},  // Красный и зеленый
+        {0xffb700, 0x00ffd0},  // оранжевый и бирюзовый
+        {0x15ff00, 0x002aff},  // зеленый и синий
+        {0x05ecfc, 0xfc05f4},  // бирюзовый  и фиолетоывй
+        {0x2605fc, 0xfc0505},  // синий и красный
+        {0x2605fc, 0xfc05d3}   // синий и фиолетовый
+    };
 };
 
 class EffectFallingStar : public Effect {
@@ -42,12 +98,12 @@ class EffectFallingStar : public Effect {
         EffectFallingStar();
     
         // Настройки эффекта
-        uint32_t colorFront = 0xFF5733;  // Красный (R: 255, G: 87, B: 51)
-        uint32_t colorBack = 0x33FF57;   // Зелёный (R: 51, G: 255, B: 87)
-        uint32_t colorTop = 0x3357FF;    // Синий (R: 51, G: 87, B: 255)
-        uint32_t colorBottom = 0xFF33A1; // Розовый (R: 255, G: 51, B: 161)
-        uint32_t colorLeft = 0xF5A623;   // Оранжевый (R: 245, G: 166, B: 35)
-        uint32_t colorRight = 0x8B33FF;  // Фиолетовый (R: 139, G: 51, B: 255)
+        uint32_t colorFront = 0xFF5733;  
+        uint32_t colorBack = 0x33FF57;   
+        uint32_t colorTop = 0x3357FF;   
+        uint32_t colorBottom = 0xFF33A1; 
+        uint32_t colorLeft = 0xF5A623;  
+        uint32_t colorRight = 0x8B33FF;
 
         std::vector<uint32_t> colors =  {
            colorFront, colorBack, colorLeft, colorRight, colorTop, colorBottom
@@ -138,6 +194,7 @@ public:
     EffectSymbol effectSymbol = EffectSymbol();
     EffectBeatingHeart breathingHeart = EffectBeatingHeart();
     EffectFallingStar fallingStar = EffectFallingStar();
+    EffectSoundLevel soundLevel = EffectSoundLevel();
 
     void setActiveEffect(CubeEffects e){
         switch (e)
@@ -150,6 +207,9 @@ public:
             break;
         case CubeEffects::FALING_STAR:
             activeEffect = &fallingStar;
+            break;
+        case CubeEffects::SOUND_PEAKS:
+            activeEffect = &soundLevel;
         break;
         default:
             break;

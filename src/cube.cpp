@@ -1,5 +1,7 @@
 #include "cube.h"
 #include <new>
+#include <cstdlib>
+#include <ctime>
 
 // Буфер для объекта Cube (выравнивание по требованиям Cube)
 alignas(Cube) uint8_t cubeBuffer[sizeof(Cube)];
@@ -16,6 +18,8 @@ Adafruit_NeoPixel displays[NUM_MATRICES] = {
 
 void initCube()
 {
+    std::srand(std::time(0));
+
     for (int i = 0; i < NUM_MATRICES; ++i)
     {
         matrices.push_back(Matrix(displays[i], WIDTH, HEIGHT, true));
@@ -92,9 +96,6 @@ void Cube::tick()
 {
     if (activeEffect != nullptr)
     {
-        unsigned long currentTime = millis();
-        unsigned long delta = currentTime - lastTime;
-        lastTime = currentTime;
-        activeEffect->tick(*this, delta);
+        activeEffect->tick(*this);
     }
 }

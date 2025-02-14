@@ -19,11 +19,11 @@ void setup()
   logger.println("initMatrices");
   initCube();
 
-  cube->setActiveEffect(CubeEffects::FALING_STAR);
+  cube->setActiveEffect(CubeEffects::SOUND_PEAKS);
   std::vector<std::reference_wrapper<Matrix>> faces = cube->getFaces();
   for (int f = 0; f < faces.size(); f++)
   {
-    faces[f].get().maxBrightness = 0.8f;
+    faces[f].get().maxBrightness = 0.2f;
   }
 }
 
