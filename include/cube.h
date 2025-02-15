@@ -21,6 +21,7 @@ enum class CubeEffects
     FALING_STAR,
     SOUND_PEAKS,
     SPIRAL,
+    FADE_PIXEL,
     BLINK_CUBE
 };
 
@@ -37,6 +38,16 @@ enum class Color : uint32_t
     RED = 0xFF0000, // Красный
     VIOLET = 0x8A2BE2 // Фиолетовый
 };
+
+inline float getRandomFloatInRange(const float min, const float max)
+{
+    return min + (static_cast<float>(rand()) / RAND_MAX) * (max - min);
+}
+
+inline int getRandonIntInRange(const int x, const int y)
+{
+    return std::rand() % (y - x + 1) + x;
+}
 
 class Cube;
 
@@ -62,6 +73,31 @@ private:
     unsigned long renderTime = 10;
 };
 
+class EffectFadePixels : public Effect
+{
+public:
+    EffectFadePixels();
+
+    void render(Cube& cube, unsigned long deltaTime) override;
+
+    int basePeriod = 500;
+    int baseCooldown = 200;
+
+    struct FadePixel: Pixel
+    {
+        int period;
+        bool up = true;
+        bool paused = false;
+        int cooldownAccumulate = 0;
+        int cooldown = 0;
+        int accumulatedTime = 0 ;
+    };
+
+    FadePixel initPixel();
+
+private:
+    std::vector<FadePixel> pixels;
+};
 
 class EffectSpiral : public Effect
 {
@@ -71,13 +107,13 @@ public:
     unsigned long pauseForPixel = 70;
 
     void render(Cube& cube, unsigned long deltaTime) override;
+
 private:
     std::vector<Pixel> pixels;
     unsigned long lastTime = 0;
     bool up = true;
     int index = 0;
     int step = 0;
-
 };
 
 class EffectSoundLevel : public Effect
@@ -229,6 +265,7 @@ public:
     EffectFallingStar fallingStar = EffectFallingStar();
     EffectSoundLevel soundLevel = EffectSoundLevel();
     EffectSpiral effectSpiral = EffectSpiral();
+    EffectFadePixels fadePixels = EffectFadePixels();
 
     void setActiveEffect(CubeEffects e)
     {
@@ -248,6 +285,10 @@ public:
             break;
         case CubeEffects::SPIRAL:
             activeEffect = &effectSpiral;
+            break;
+        case CubeEffects::FADE_PIXEL:
+            activeEffect = &fadePixels;
+            break;
         default:
             break;
         }

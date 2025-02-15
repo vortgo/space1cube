@@ -12,11 +12,6 @@
 // - uint32_t color, tailColor;
 // - uint8_t tailLength;
 
-float getRandomFloatInRange(float min, float max)
-{
-    return min + (static_cast<float>(rand()) / RAND_MAX) * (max - min);
-}
-
 //
 
 EffectFallingStar::EffectFallingStar()

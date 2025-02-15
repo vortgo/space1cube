@@ -72,11 +72,6 @@ int calculateLEDHeight(int N, int M, bool increase, unsigned long accumulatedTim
     }
 }
 
-int r(int x, int y)
-{
-    return std::rand() % (y - x + 1) + x;
-}
-
 EffectSoundLevel::EffectSoundLevel()
 {
     peaks.resize(8);
@@ -87,8 +82,8 @@ EffectSoundLevel::EffectSoundLevel()
         peak.currentHeight = 0;
         peak.increase = true;
         peak.low = 1;
-        peak.hight = r(1, 7);
-        peak.period = basePeriod + r(0, 400);
+        peak.hight = getRandonIntInRange(1, 7);
+        peak.period = basePeriod + getRandonIntInRange(0, 400);
         peak.pauseTime = pauseTime;
         peak.accumulatedPause = 0;
 
@@ -141,17 +136,17 @@ void EffectSoundLevel::render(Cube &cube, unsigned long deltaTime)
             {
                 peaks[i].increase = true;
                 peaks[i].low = peaks[i].currentHeight;
-                peaks[i].hight = r(peaks[i].currentHeight + 1, 7);
+                peaks[i].hight = getRandonIntInRange(peaks[i].currentHeight + 1, 7);
             }
             else
             {
                 peaks[i].increase = false;
                 peaks[i].hight = peaks[i].currentHeight;
-                peaks[i].low = r(1, peaks[i].currentHeight - 1);
+                peaks[i].low = getRandonIntInRange(1, peaks[i].currentHeight - 1);
             }
 
             peaks[i].accumulatedPause = 0;
-            peaks[i].period = basePeriod + r(0, 200);
+            peaks[i].period = basePeriod + getRandonIntInRange(0, 200);
             peaks[i].pauseTime = pauseTime;
         }
     }

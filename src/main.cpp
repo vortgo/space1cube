@@ -19,11 +19,11 @@ void setup()
   logger.println("initMatrices");
   initCube();
 
-  cube->setActiveEffect(CubeEffects::SPIRAL);
+  cube->setActiveEffect(CubeEffects::FADE_PIXEL);
   std::vector<std::reference_wrapper<Matrix>> faces = cube->getFaces();
   for (auto face : faces)
   {
-    face.get().maxBrightness = 0.5f;
+    face.get().maxBrightness = 0.8f;
   }
 }
 
