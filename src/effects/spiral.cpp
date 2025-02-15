@@ -11,19 +11,12 @@ EffectSpiral::EffectSpiral(){
         // Перебор верхней строки
         for (int i = left; i <= right; ++i) {
             pixels[idx++] = Pixel(top, i);
-            Serial.print(top);
-            Serial.print("-");
-            Serial.println(i);
         }
         top++;
 
         // Перебор правого столбца
         for (int i = top; i <= bottom; ++i) {
             pixels[idx++] = Pixel(i, right);
-            Serial.print(i);
-            Serial.print("-");
-            Serial.println(right);
-
         }
         right--;
 
@@ -31,9 +24,6 @@ EffectSpiral::EffectSpiral(){
             // Перебор нижней строки
             for (int i = right; i >= left; --i) {
                 pixels[idx++] = Pixel(bottom, i);
-                Serial.print(bottom);
-                Serial.print("-");
-                Serial.println(i);
             }
             bottom--;
         }
@@ -42,9 +32,6 @@ EffectSpiral::EffectSpiral(){
             // Перебор левого столбца
             for (int i = bottom; i >= top; --i) {
                 pixels[idx++] = Pixel(i, left);
-                Serial.print(i);
-                Serial.print("-");
-                Serial.println(left);
             }
             left++;
         }
