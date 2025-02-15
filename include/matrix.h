@@ -17,6 +17,7 @@ public:
 
     void setPixel(uint8_t x, uint8_t y, uint32_t color, uint8_t brightness = 255);
     void setPixel(uint8_t x, uint8_t y, uint32_t color, float brightness);
+    void setPixel(const Pixel& p);
     
     Pixel& getPixel(uint8_t x, uint8_t y);
 

@@ -46,6 +46,12 @@ void Matrix::setPixel(uint8_t x, uint8_t y, uint32_t color, float brightness) {
     setPixel(x, y, color, b);
 }
 
+void Matrix::setPixel(const Pixel& p)
+{
+    setPixel(p.getX(), p.getY(), p.getColor(), p.getBrightness());
+}
+
+
 void Matrix::clear(){
     for (uint8_t index = 0; index < height *width ; ++index) {
             pixels[index].setColor(0x000000);
