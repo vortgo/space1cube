@@ -18,11 +18,10 @@ enum class CubeEffects
 {
     SYMBOL,
     HEART,
-    FALING_STAR,
+    FAILING_STAR,
     SOUND_PEAKS,
     SPIRAL,
-    FADE_PIXEL,
-    BLINK_CUBE
+    FADE_PIXEL
 };
 
 enum class Color : uint32_t
@@ -80,8 +79,10 @@ public:
 
     void render(Cube& cube, unsigned long deltaTime) override;
 
-    int basePeriod = 500;
-    int baseCooldown = 200;
+    int minPeriod = 100;
+    int minCooldown = 100;
+    int maxPeriod = 500;
+    int maxCooldown = 500;
 
     struct FadePixel: Pixel
     {
@@ -277,7 +278,7 @@ public:
         case CubeEffects::HEART:
             activeEffect = &breathingHeart;
             break;
-        case CubeEffects::FALING_STAR:
+        case CubeEffects::FAILING_STAR:
             activeEffect = &fallingStar;
             break;
         case CubeEffects::SOUND_PEAKS:
