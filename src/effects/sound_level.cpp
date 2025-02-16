@@ -26,33 +26,6 @@ uint32_t getColorForHeight(int height, uint32_t highestColor, uint32_t lowestCol
     return newColor;
 }
 
-
-
-float  getBrightnessForHeight(int height)
-{
-    switch (height)
-    {
-    case 0:
-        return 0.2f;
-    case 1:
-        return 0.4f;
-    case 2:
-        return 0.5f;
-    case 3:
-        return 0.6f;
-    case 4:
-        return 0.7f;
-    case 5:
-        return 0.8f;
-    case 6:
-        return 0.9f;
-    case 7:
-        return 1.0f;
-    default:
-        return 1.0f;
-    }
-}
-
 int calculateLEDHeight(int N, int M, bool increase, unsigned long accumulatedTime, int periodDuration)
 {
     // Вычисляем прогресс от 0 до 1 в зависимости от accumulatedTime и periodDuration

@@ -28,6 +28,12 @@ void Matrix::setPixel(uint8_t x, uint8_t y, uint32_t color, uint8_t brightness) 
         uint16_t index = getIndex(x, y);
         pixels[index].setColor(color);
         pixels[index].setBrightness(brightness);
+
+        // Serial.print("Matrix::setPixel: ");
+        // Serial.print(x);
+        // Serial.print("-");
+        // Serial.println(y);
+        // Serial.println("Matrix::setPixel - end!!!");
     }
 }
 

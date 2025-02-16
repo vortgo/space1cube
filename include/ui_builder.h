@@ -34,140 +34,205 @@ DB_KEYS(
 
 );
 
-struct Data
+struct PrintSymbolData
 {
     String symbol = "";
     uint32_t color = 0xff0000;
 };
+PrintSymbolData printSymbolData;
 
-Data data;
+struct HeartData
+{
+    float beatPeriod = 1.0f;
+};
+HeartData heartData;
+
+
+struct FallingStarData
+{
+    float fallSpeed = 0.03f; // Скорость падения
+    uint8_t tailLength = 3; // Длина хвоста
+};
+FallingStarData fallingStarData;
+
+struct SoundLevelData
+{
+    int basePeriod = 500;
+    int pauseTime = 500;
+};
+SoundLevelData soundLevelData;
+
+struct SpiralData
+{
+    unsigned long pauseForPixel = 70;
+};
+SpiralData spiralData;
+
+struct FadePixelsData
+{
+    float basePeriod = 500.0f;
+    float baseCooldown = 200.0f;
+};
+FadePixelsData fadePixelsData;
+
+struct DiceData
+{
+    float maxSteps = 50;
+};
+DiceData diceData;
+
 bool cfm_f, notice_f, alert_f;
 bool onTop = true, onBottom = true, onFront = true, onBack = true, onLeft = true, onRight = true;
+
+
 void build(sets::Builder &b)
 {
     {
         {
-            sets::Menu pixelControl(b, "Print Symbol");
-            b.Input("Symbol", &data.symbol);
-            b.Color("", &data.color);
-            if (b.Button("Submit"))
+            sets::Group g(b, "Effects");
+
             {
-                cube->effectSymbol.print(data.symbol.c_str(), data.color);
-                cube->setActiveEffect(CubeEffects::SYMBOL);
+                sets::Menu pixelControl(b, "Print Symbol");
+                b.Input("Symbol", &printSymbolData.symbol);
+                b.Color("Color", &printSymbolData.color);
+                if (b.Button("Submit"))
+                {
+                    Serial.println("set active SYMBOL");
+                    cube->effectSymbol.print(printSymbolData.symbol.c_str(), printSymbolData.color);
+                    cube->setActiveEffect(CubeEffects::SYMBOL);
+                }
+            }
+
+            {
+                sets::Menu pixelControl(b, "Fade Pixels");
+                b.Slider("fadePixelsData.basePeriod"_h,"Base Period", 100, 1000, 50,"", &fadePixelsData.basePeriod);
+                b.Slider("fadePixelsData.baseCooldown"_h,"Base Cooldown", 100, 1000, 50,"", &fadePixelsData.baseCooldown);
+
+                if (b.Button("Activate"))
+                {
+                    Serial.println("set active FADE_PIXEL");
+                    cube->fadePixels.basePeriod = static_cast<int>(fadePixelsData.basePeriod);
+                    cube->fadePixels.baseCooldown = static_cast<int>(fadePixelsData.baseCooldown);
+                    cube->setActiveEffect(CubeEffects::FADE_PIXEL);
+                }
+            }
+
+            {
+                sets::Menu pixelControl(b, "Spiral");
+                b.Slider("spiralData.pauseForPixel"_h,"Pause Time", 1, 250, 1,"TEXT", &spiralData.pauseForPixel);
+
+                if (b.Button("Activate"))
+                {
+                    Serial.println("set active SPIRAL");
+                    cube->effectSpiral.pauseForPixel = spiralData.pauseForPixel;
+                    cube->clear();
+                    cube->setActiveEffect(CubeEffects::SPIRAL);
+                }
+            }
+
+            {
+                sets::Menu pixelControl(b, "Sound Levels");
+                b.Slider("soundLevelData.basePeriod"_h,"Base Period", 200, 1500, 10,"TEXT", &soundLevelData.basePeriod);
+                b.Slider("soundLevelData.pauseTime"_h,"Pause Time", 200, 1500, 10,"TEXT", &soundLevelData.pauseTime);
+
+                if (b.Button("Activate"))
+                {
+                    Serial.println("set active SOUND_PEAKS");
+                    cube->soundLevel.basePeriod = soundLevelData.basePeriod;
+                    cube->soundLevel.pauseTime = soundLevelData.pauseTime;
+                    cube->setActiveEffect(CubeEffects::SOUND_PEAKS);
+                }
+            }
+
+            {
+                sets::Menu pixelControl(b, "Dice");
+                b.Slider("diceData.maxSteps"_h,"Period", 20, 200, 10,"", &diceData.maxSteps);
+
+                if (b.Button("Activate"))
+                {
+                    Serial.println("set active DICE");
+
+                    cube->effectDice.maxSteps = diceData.maxSteps;
+                    cube->setActiveEffect(CubeEffects::DICE);
+                }
+            }
+
+            {
+                sets::Menu pixelControl(b, "Falling Starts");
+
+                b.Slider("fallingStarData.tailLength"_h, "Tail Length", 1, 5, 1,"", &fallingStarData.tailLength);
+                b.Slider("fallingStarData.fallSpeed"_h, "Fall Speed", 0.01, 0.1, 0.01,"", &fallingStarData.fallSpeed);
+
+                if (b.Button("Activate"))
+                {
+                    Serial.println("set active FAILING_STAR");
+                    cube->fallingStar.tailLength = fallingStarData.tailLength - 1;
+                    cube->fallingStar.fallSpeed = fallingStarData.fallSpeed;
+                    cube->setActiveEffect(CubeEffects::FAILING_STAR);
+                }
+            }
+
+            {
+                sets::Menu pixelControl(b, "Heart");
+                b.Slider("heartData.beatPeriod"_h,"Beat Period", 0, 5, 0.1,"TEXT", &heartData.beatPeriod);
+                if (b.Button("Activate"))
+                {
+                    Serial.println("set active HEART");
+                    cube->breathingHeart.beatPeriod = heartData.beatPeriod;
+                    cube->setActiveEffect(CubeEffects::HEART);
+                }
             }
         }
 
-        sets::Menu facesMenu(b, "Faces");
 
         {
-            sets::Menu front(b, "Front");
-            if (b.Switch(H("ON/OFF-Front"), "ON/OFF", &onFront))
+            sets::Group g(b, "Settings");
             {
-                logger.println("on/off front");
-                logger.println(onFront);
-                onFront ? cube->front.turnOn() : cube->front.turnOff();
+                {
+                    sets::Menu facesMenu(b, "Faces");
+
+                    if (b.Switch(H("ON/OFF-Front"), "Front: ON/OFF", &onFront))
+                    {
+                        onFront ? cube->front.turnOn() : cube->front.turnOff();
+                    }
+
+                    if (b.Switch(H("ON/OFF-Back"), "Back: ON/OFF", &onBack))
+                    {
+                        onBack ? cube->back.turnOn() : cube->back.turnOff();
+                    }
+
+                    if (b.Switch(H("ON/OFF-Left"), "Left: ON/OFF", &onLeft))
+                    {
+                        onLeft ? cube->left.turnOn() : cube->left.turnOff();
+                    }
+
+                    if (b.Switch(H("ON/OFF-Right"), "Right: ON/OFF", &onRight))
+                    {
+                        onRight ? cube->right.turnOn() : cube->right.turnOff();
+                    }
+
+                    if (b.Switch(H("ON/OFF-Top"), "Top: ON/OFF", &onTop))
+                    {
+                        onTop ? cube->top.turnOn() : cube->top.turnOff();
+                    }
+
+                    if (b.Switch(H("ON/OFF-Bottom"), "Bottom: ON/OFF", &onBottom))
+                    {
+                        onBottom ? cube->bottom.turnOn() : cube->bottom.turnOff();
+                    }
+                }
+                {
+                    sets::Menu g(b, "Logs");
+                    b.Log(H(log), logger);
+                }
             }
         }
-        {
-            sets::Menu back(b, "Back");
-            if (b.Switch(H("ON/OFF-Back"), "ON/OFF", &onBack))
-            {
-                onBack ? cube->back.turnOn() : cube->back.turnOff();
-            }
-        }
-        {
-            sets::Menu left(b, "Left");
-            if (b.Switch(H("ON/OFF-Left"), "ON/OFF", &onLeft))
-            {
-                onLeft ? cube->left.turnOn() : cube->left.turnOff();
-            }
-        }
-        {
-            sets::Menu right(b, "Right");
-            if (b.Switch(H("ON/OFF-Right"), "ON/OFF", &onRight))
-            {
-                onRight ? cube->right.turnOn() : cube->right.turnOff();
-            }
-        }
-        {
-            sets::Menu top(b, "Top");
-            if (b.Switch(H("ON/OFF-Top"), "ON/OFF", &onTop))
-            {
-                onTop ? cube->top.turnOn() : cube->top.turnOff();
-            }
-        }
-        {
-            sets::Menu bottom(b, "Bottom");
-            if (b.Switch(H("ON/OFF-Bottom"), "ON/OFF", &onBottom))
-            {
-                onBottom ? cube->bottom.turnOn() : cube->bottom.turnOff();
-            }
-        }
-    }
-
-    {
-        sets::Menu g(b, "Logs");
-
-        b.Log(H(log), logger);
-    }
-
-    {
-        sets::Group g(b, "database^^^^666");
-
-        b.Label(kk::label);
-        b.LED(kk::led);
-        b.Paragraph(kk::paragr);
-        b.Input(kk::input);
-        b.Number(kk::number);
-        b.Pass(kk::pass);
-        b.Color(kk::color);
-        b.Switch(kk::sw);
-        b.Date(kk::datew);
-        b.Time(kk::timew);
-        b.DateTime(kk::datetime);
-        b.Slider(kk::slider);
-        b.Select(kk::sel, "", "foo;bar;test");
-        if (b.Button(kk::btn))
-            Serial.println("btn 0");
-    }
-
-    if (b.beginButtons())
-    {
-        if (b.Button("Notice"))
-            notice_f = true;
-        if (b.Button("Error"))
-            alert_f = true;
-        if (b.Button("Confirm"))
-            cfm_f = true;
-        b.endButtons();
-    }
-
-    bool res;
-    if (b.Confirm(kk::conf, "Confirm", &res))
-    {
-        Serial.println(res);
     }
 }
 
 void update(sets::Updater &u)
 {
     u.update(H(log), logger);
-
-    if (cfm_f)
-    {
-        cfm_f = false;
-        u.update(kk::conf);
-    }
-    if (notice_f)
-    {
-        notice_f = false;
-        u.notice("Уведомление");
-    }
-    if (alert_f)
-    {
-        alert_f = false;
-        u.alert("Ошибка");
-    }
 }
 
 #endif // UI_BUILDER_H

@@ -89,6 +89,8 @@ uint32_t getColor(int index) {
 }
 
 void EffectSpiral::render(Cube& cube, unsigned long deltaTime){
+    std::vector<std::reference_wrapper<Matrix>> faces = cube.getFaces();
+
     unsigned long currentTime = millis();
     unsigned long delta = currentTime - lastTime;
     if (delta < pauseForPixel)
@@ -117,7 +119,9 @@ void EffectSpiral::render(Cube& cube, unsigned long deltaTime){
     }
 
 
-    cube.front.setPixel(pixels[i]);
+    for (int f = 0; f < faces.size(); f++) {
+       faces[f].get().setPixel(pixels[i]);
+    }
 
     index++;
 

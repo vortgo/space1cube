@@ -1,9 +1,9 @@
 #include <Arduino.h>
 #include "wifi_setup.h"
-#include "database.h"
 #include "settings.h"
 #include "logger.h"
 #include "cube.h"
+#define SETT_NO_DB
 
 void setup()
 {
@@ -12,14 +12,12 @@ void setup()
 
   logger.println("setupWiFi");
   setupWiFi();
-  logger.println("setupDatabase");
-  setupDatabase();
   logger.println("setupSettings");
   setupSettings();
   logger.println("initMatrices");
   initCube();
 
-  cube->setActiveEffect(CubeEffects::FADE_PIXEL);
+  cube->setActiveEffect(CubeEffects::DICE);
   std::vector<std::reference_wrapper<Matrix>> faces = cube->getFaces();
   for (auto face : faces)
   {

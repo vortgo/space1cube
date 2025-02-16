@@ -29,8 +29,8 @@ uint32_t getRandomColor() {
 
 EffectFadePixels::FadePixel EffectFadePixels::initPixel(){
      EffectFadePixels::FadePixel p = EffectFadePixels::FadePixel();
-     p.period = getRandonIntInRange(minPeriod, maxPeriod);
-     p.cooldown = getRandonIntInRange(minCooldown, maxCooldown);
+     p.period = basePeriod + getRandonIntInRange(0, 500);
+     p.cooldown = baseCooldown + getRandonIntInRange(0, 500);
      p.setColor(getRandomColor());
      p.up = true;
 
@@ -57,37 +57,32 @@ void EffectFadePixels::render(Cube& cube, unsigned long deltaTime){
     for(int i = 0; i < pixels.size(); i++){
         if (pixels[i].paused && pixels[i].cooldownAccumulate < pixels[i].cooldown) {
             pixels[i].cooldownAccumulate += deltaTime;
-
             continue;
         }
 
         if (pixels[i].paused && pixels[i].cooldownAccumulate > pixels[i].cooldown) {
             pixels[i].paused = false;
             pixels[i].cooldownAccumulate = 0;
-            pixels[i].accumulatedTime = 0;
             pixels[i].setColor(getRandomColor());
-            pixels[i].period = getRandonIntInRange(minPeriod, maxPeriod);
-            pixels[i].cooldown = getRandonIntInRange(minCooldown, maxCooldown);
         }
 
         uint8_t br = getBrightness(pixels[i].accumulatedTime, pixels[i].period, pixels[i].up);
         pixels[i].setBrightness(br);
         pixels[i].accumulatedTime += deltaTime;
 
-
-
-
-        if (pixels[i].getBrightness() > 245 && pixels[i].up){
+        if (pixels[i].getBrightness() > 245){
+            pixels[i].period = basePeriod + getRandonIntInRange(0, 500);
+            pixels[i].cooldown = baseCooldown + getRandonIntInRange(0, 500);
+            pixels[i].cooldownAccumulate = 0;
             pixels[i].paused = true;
-            pixels[i].up = !pixels[i].up;
-
         }
 
-        if (pixels[i].getBrightness() < 10 && !pixels[i].up ){
+        if (pixels[i].getBrightness() < 10 ){
+            pixels[i].cooldownAccumulate = 0;
             pixels[i].paused = true;
             pixels[i].setBrightness(0);
-            pixels[i].up = !pixels[i].up;
-
+            pixels[i].period = basePeriod + getRandonIntInRange(0, 500);
+            pixels[i].cooldown = baseCooldown + getRandonIntInRange(0, 500);
         }
 
         for (int f = 0; f < faces.size(); f++) {

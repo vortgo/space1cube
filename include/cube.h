@@ -21,7 +21,8 @@ enum class CubeEffects
     FAILING_STAR,
     SOUND_PEAKS,
     SPIRAL,
-    FADE_PIXEL
+    FADE_PIXEL,
+    DICE,
 };
 
 enum class Color : uint32_t
@@ -53,6 +54,8 @@ class Cube;
 class Effect
 {
 public:
+    virtual ~Effect() = default;
+
     void tick(Cube& cube)
     {
         unsigned long currentTime = millis();
@@ -72,6 +75,44 @@ private:
     unsigned long renderTime = 10;
 };
 
+class EffectRotate : public Effect
+{
+public:
+    EffectRotate();
+    void render(Cube& cube, unsigned long deltaTime) override;
+private:
+    std::vector<Effect> effects;
+};
+
+class EffectDice final : public Effect
+{
+public:
+    EffectDice();
+    void render(Cube& cube, unsigned long deltaTime) override;
+
+    std::vector<Color> colors = {
+        Color::BLUE, Color::CYAN, Color::GREEN, Color::ORANGE, Color::RED, Color::VIOLET
+    };
+    float period = 20;
+    float maxSteps = 50;
+    unsigned long accumulatedTime = 0;
+
+private:
+
+    struct Face
+    {
+        int value = 0 ;
+        int startColorIndex;
+        int endColorIndex;
+        int steps = 0;
+    };
+    void changeColors(Face &f);
+
+    std::vector<Face> faces;
+
+    void renderValue(Matrix &m, int value, uint32_t color);
+};
+
 class EffectFadePixels : public Effect
 {
 public:
@@ -79,10 +120,8 @@ public:
 
     void render(Cube& cube, unsigned long deltaTime) override;
 
-    int minPeriod = 100;
-    int minCooldown = 100;
-    int maxPeriod = 500;
-    int maxCooldown = 500;
+    int basePeriod = 500;
+    int baseCooldown = 200;
 
     struct FadePixel: Pixel
     {
@@ -209,7 +248,6 @@ public:
     // Метод обновления эффекта, deltaTime – прошедшее время в секундах с прошлого обновления.
     void render(Cube& cube, unsigned long deltaTime) override;
     float beatPeriod = 1.0f; // Период полного цикла биения
-    uint32_t color = 0x00FF00;
 
 private:
     void setOnFace(Matrix& f);
@@ -267,6 +305,7 @@ public:
     EffectSoundLevel soundLevel = EffectSoundLevel();
     EffectSpiral effectSpiral = EffectSpiral();
     EffectFadePixels fadePixels = EffectFadePixels();
+    EffectDice effectDice = EffectDice();
 
     void setActiveEffect(CubeEffects e)
     {
@@ -274,21 +313,31 @@ public:
         {
         case CubeEffects::SYMBOL:
             activeEffect = &effectSymbol;
+            Serial.println("activeEffect SYMBOL");
             break;
         case CubeEffects::HEART:
             activeEffect = &breathingHeart;
+            Serial.println("activeEffect HEART");
             break;
         case CubeEffects::FAILING_STAR:
             activeEffect = &fallingStar;
+            Serial.println("activeEffect FAILING_STAR");
             break;
         case CubeEffects::SOUND_PEAKS:
             activeEffect = &soundLevel;
+            Serial.println("activeEffect SOUND_PEAKS");
             break;
         case CubeEffects::SPIRAL:
             activeEffect = &effectSpiral;
+            Serial.println("activeEffect SPIRAL");
             break;
         case CubeEffects::FADE_PIXEL:
             activeEffect = &fadePixels;
+            Serial.println("activeEffect FADE_PIXEL");
+            break;
+        case CubeEffects::DICE:
+            activeEffect = &effectDice;
+            Serial.println("activeEffect DICE");
             break;
         default:
             break;
