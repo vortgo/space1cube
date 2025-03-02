@@ -23,6 +23,8 @@ enum class CubeEffects
     SPIRAL,
     FADE_PIXEL,
     DICE,
+    ROTATE,
+    ROMB,
 };
 
 enum class Color : uint32_t
@@ -68,11 +70,23 @@ public:
         render(cube, delta);
     }
 
-    virtual void render(Cube& cube, unsigned long deltaTime);
+    virtual void render(Cube& cube, unsigned long deltaTime) = 0;
 
 private:
     unsigned long lastTime = 0;
     unsigned long renderTime = 10;
+};
+
+class EffectRomb : public Effect
+{
+public:
+    float period = 1500;
+    void render(Cube& cube, unsigned long deltaTime) override;
+
+private:
+    uint32_t interpolateColor(uint32_t colorStart, uint32_t colorEnd, float t);
+    float accumulatedTime = 0.0f;
+    unsigned long effectTime = 0;
 };
 
 class EffectRotate : public Effect
@@ -80,8 +94,12 @@ class EffectRotate : public Effect
 public:
     EffectRotate();
     void render(Cube& cube, unsigned long deltaTime) override;
+    float period = 15000;
+    int effect = 0;
 private:
-    std::vector<Effect> effects;
+    std::vector<std::reference_wrapper<Effect>>effects;
+
+    unsigned long accumulatedTime = 0;
 };
 
 class EffectDice final : public Effect
@@ -306,6 +324,8 @@ public:
     EffectSpiral effectSpiral = EffectSpiral();
     EffectFadePixels fadePixels = EffectFadePixels();
     EffectDice effectDice = EffectDice();
+    EffectRotate effectRotate = EffectRotate();
+    EffectRomb effectRomb = EffectRomb();
 
     void setActiveEffect(CubeEffects e)
     {
@@ -338,6 +358,14 @@ public:
         case CubeEffects::DICE:
             activeEffect = &effectDice;
             Serial.println("activeEffect DICE");
+            break;
+        case CubeEffects::ROTATE:
+            activeEffect = &effectRotate;
+            Serial.println("activeEffect ROTATE");
+            break;
+        case CubeEffects::ROMB:
+            activeEffect = &effectRomb;
+            Serial.println("activeEffect ROMB");
             break;
         default:
             break;
@@ -399,6 +427,11 @@ public:
         return {front, back, left, right, top, bottom};
     }
 
+    std::vector<std::reference_wrapper<Effect>> getEffectsForRotate()
+    {
+        return {breathingHeart,fallingStar, soundLevel, effectSpiral, fadePixels, effectDice };
+    }
+
 private:
     /**
      * @brief Вспомогательный метод для получения ссылки на матрицу по заданной грани.
@@ -412,5 +445,33 @@ private:
 
 extern Cube* cube;
 void initCube();
+
+
+// Функция для преобразования HSV в RGB
+inline void myHsvToRgb(float h, float s, float v, uint8_t &r, uint8_t &g, uint8_t &b) {
+    float c = v * s;
+    float x = c * (1 - fabs(fmod(h / 60.0f, 2) - 1));
+    float m = v - c;
+
+    float r1, g1, b1;
+    if (h >= 0 && h < 60) {
+        r1 = c; g1 = x; b1 = 0;
+    } else if (h >= 60 && h < 120) {
+        r1 = x; g1 = c; b1 = 0;
+    } else if (h >= 120 && h < 180) {
+        r1 = 0; g1 = c; b1 = x;
+    } else if (h >= 180 && h < 240) {
+        r1 = 0; g1 = x; b1 = c;
+    } else if (h >= 240 && h < 300) {
+        r1 = x; g1 = 0; b1 = c;
+    } else {
+        r1 = c; g1 = 0; b1 = x;
+    }
+
+    // Добавляем m, чтобы получить итоговые значения RGB
+    r = static_cast<uint8_t>((r1 + m) * 255);
+    g = static_cast<uint8_t>((g1 + m) * 255);
+    b = static_cast<uint8_t>((b1 + m) * 255);
+}
 
 #endif // CUBE_H

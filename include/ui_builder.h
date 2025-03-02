@@ -81,8 +81,16 @@ struct DiceData
 };
 DiceData diceData;
 
+struct RombData
+{
+    float period = 1500;
+};
+RombData rombData;
+
 bool cfm_f, notice_f, alert_f;
 bool onTop = true, onBottom = true, onFront = true, onBack = true, onLeft = true, onRight = true;
+
+float maxBrightness = 0.8f;
 
 
 void build(sets::Builder &b)
@@ -158,6 +166,15 @@ void build(sets::Builder &b)
             }
 
             {
+                sets::Menu pixelControl(b, "Rotate");
+                if (b.Button("Activate"))
+                {
+                    Serial.println("set active Rotate");
+                    cube->setActiveEffect(CubeEffects::ROTATE);
+                }
+            }
+
+            {
                 sets::Menu pixelControl(b, "Falling Starts");
 
                 b.Slider("fallingStarData.tailLength"_h, "Tail Length", 1, 5, 1,"", &fallingStarData.tailLength);
@@ -174,12 +191,23 @@ void build(sets::Builder &b)
 
             {
                 sets::Menu pixelControl(b, "Heart");
-                b.Slider("heartData.beatPeriod"_h,"Beat Period", 0, 5, 0.1,"TEXT", &heartData.beatPeriod);
+                b.Slider("heartData.beatPeriod"_h,"Beat Period", 0, 5, 0.1,"", &heartData.beatPeriod);
                 if (b.Button("Activate"))
                 {
                     Serial.println("set active HEART");
                     cube->breathingHeart.beatPeriod = heartData.beatPeriod;
                     cube->setActiveEffect(CubeEffects::HEART);
+                }
+            }
+
+            {
+                sets::Menu pixelControl(b, "Romb");
+                b.Slider("rombData.period"_h,"Period", 500, 5000, 10,"", &rombData.period);
+                if (b.Button("Activate"))
+                {
+                    Serial.println("set active Romb");
+                    cube->effectRomb.period = rombData.period;
+                    cube->setActiveEffect(CubeEffects::ROMB);
                 }
             }
         }
@@ -224,6 +252,14 @@ void build(sets::Builder &b)
                 {
                     sets::Menu g(b, "Logs");
                     b.Log(H(log), logger);
+                }
+                if (b.Slider("maxBrightness"_h,"Max Brightness", 0, 1, 0.05,"", &maxBrightness))
+                {
+                    std::vector<std::reference_wrapper<Matrix>> faces = cube->getFaces();
+                    for (auto face : faces)
+                    {
+                        face.get().maxBrightness = maxBrightness;
+                    }
                 }
             }
         }

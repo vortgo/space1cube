@@ -140,11 +140,6 @@ void EffectDice::renderValue(Matrix &m, int diceValue, uint32_t color){
 void EffectDice::render(Cube& c, unsigned long deltaTime) {
     std::vector<std::reference_wrapper<Matrix>> matrices = c.getFaces();
     if (accumulatedTime < period){
-        Serial.println("continue");
-
-        Serial.print("accumulatedTime: ");
-        Serial.println(accumulatedTime);
-
         accumulatedTime += deltaTime;
         return;
     }

@@ -38,35 +38,6 @@ EffectSpiral::EffectSpiral(){
     }
 }
 
-
-// Функция для преобразования HSV в RGB
-void hsvToRgb(float h, float s, float v, uint8_t &r, uint8_t &g, uint8_t &b) {
-    float c = v * s;
-    float x = c * (1 - fabs(fmod(h / 60.0f, 2) - 1));
-    float m = v - c;
-
-    float r1, g1, b1;
-    if (h >= 0 && h < 60) {
-        r1 = c; g1 = x; b1 = 0;
-    } else if (h >= 60 && h < 120) {
-        r1 = x; g1 = c; b1 = 0;
-    } else if (h >= 120 && h < 180) {
-        r1 = 0; g1 = c; b1 = x;
-    } else if (h >= 180 && h < 240) {
-        r1 = 0; g1 = x; b1 = c;
-    } else if (h >= 240 && h < 300) {
-        r1 = x; g1 = 0; b1 = c;
-    } else {
-        r1 = c; g1 = 0; b1 = x;
-    }
-
-    // Добавляем m, чтобы получить итоговые значения RGB
-    r = static_cast<uint8_t>((r1 + m) * 255);
-    g = static_cast<uint8_t>((g1 + m) * 255);
-    b = static_cast<uint8_t>((b1 + m) * 255);
-}
-
-
 uint32_t getColor(int index) {
     // Делаем плавный переход от 0 до 360 (от красного до красного) для оттенка (Hue)
     float factor = index / 63.0f;  // Индекс от 0 до 63 для 64 позиции
@@ -80,7 +51,7 @@ uint32_t getColor(int index) {
 
     // Конвертируем HSV в RGB
     uint8_t r, g, b;
-    hsvToRgb(hue, saturation, value, r, g, b);
+    myHsvToRgb(hue, saturation, value, r, g, b);
 
     // Собираем новый цвет из RGB компонентов
     uint32_t newColor = (r << 16) | (g << 8) | b;
