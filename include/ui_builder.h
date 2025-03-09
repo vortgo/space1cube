@@ -3,6 +3,7 @@
 
 #include <Arduino.h>
 #include <SettingsGyver.h>
+#include <StringUtils.h>
 #include "logger.h"
 #include "cube.h"
 
@@ -95,7 +96,9 @@ float maxBrightness = 0.8f;
 
 void build(sets::Builder &b)
 {
-    {
+ 	{
+   		b.Label("batteryValue"_h, "Battery", Text(std::to_string(cube->getBatteryValue()).c_str()));
+ 	}
         {
             sets::Group g(b, "Effects");
 
@@ -263,11 +266,12 @@ void build(sets::Builder &b)
                 }
             }
         }
-    }
+
 }
 
 void update(sets::Updater &u)
 {
+    u.update("batteryValue"_h,Text(std::to_string(cube->getBatteryValue()).c_str()));
     u.update(H(log), logger);
 }
 

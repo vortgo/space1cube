@@ -25,6 +25,11 @@ enum class CubeEffects
     DICE,
     ROTATE,
     ROMB,
+    AURORA,
+    LAVA_LAMP,
+    GRAVITY,
+    PARTICLES,
+    SNAKE,
 };
 
 enum class Color : uint32_t
@@ -77,6 +82,93 @@ private:
     unsigned long renderTime = 10;
 };
 
+class EffectSnake : public Effect {
+public:
+    EffectSnake();
+    void render(Cube& cube, unsigned long deltaTime) override;
+
+private:
+    struct Segment {
+        int x, y;
+        uint32_t color;
+    };
+
+    std::vector<Segment> snake;
+    int foodX, foodY;
+    uint32_t foodColor;
+    int directionX, directionY;
+    unsigned long lastUpdateTime;
+    unsigned long moveInterval;
+
+    void resetGame();
+    void move();
+    void generateFood();
+    bool checkCollision(int x, int y);
+    void updateDirection();
+};
+
+
+class EffectPhysicsParticles : public Effect {
+public:
+    EffectPhysicsParticles(int numParticles = 5, float baseSpeed = 1.2f);
+    void render(Cube& cube, unsigned long deltaTime) override;
+
+private:
+    struct Particle {
+        float x, y;
+        float vx, vy;
+        uint8_t r, g, b;
+        bool active;
+    };
+
+    std::vector<Particle> particles;
+    int maxParticles;
+    float baseSpeed;
+
+    void initParticles();
+    void updateParticles(unsigned long deltaTime);
+    void handleCollisions();
+    uint32_t randomColor();
+};
+
+class EffectGravityParticles : public Effect {
+public:
+    void render(Cube& cube, unsigned long deltaTime) override;
+
+private:
+    struct Particle {
+        float x, y;
+        float vx, vy;
+    };
+
+    std::vector<Particle> particles;
+    int maxParticles = 10;
+    float gravityStrength = 0.01f; // Замедленная скорость притяжения
+    float friction = 0.95f; // Больше трения для плавности
+    float explosionForce = 0.1f; // Уменьшена сила взрыва
+    bool exploding = false;
+    bool gathered = false;
+    unsigned long effectTime = 0;
+    unsigned long explosionDuration = 2500; // 2.5 сек разлет
+    unsigned long gatherDuration = 4000; // 4 сек притяжение
+    uint8_t baseR, baseG, baseB;
+
+    void initParticles();
+    void updateParticles();
+    void pickRandomBaseColor();
+    bool allParticlesInCenter();
+};
+
+class EffectAurora : public Effect {
+public:
+    float period = 5000;
+    void render(Cube& cube, unsigned long deltaTime) override;
+
+private:
+    float accumulatedTime = 0.0f;
+    unsigned long effectTime = 0;
+};
+
 class EffectRomb : public Effect
 {
 public:
@@ -100,6 +192,16 @@ private:
     std::vector<std::reference_wrapper<Effect>>effects;
 
     unsigned long accumulatedTime = 0;
+};
+
+class EffectLavaLamp : public Effect {
+public:
+    float period = 7000; // Плавный цикл эффекта
+    void render(Cube& cube, unsigned long deltaTime) override;
+
+private:
+    float accumulatedTime = 0.0f;
+    unsigned long effectTime = 0;
 };
 
 class EffectDice final : public Effect
@@ -317,6 +419,7 @@ private:
 class Cube
 {
 public:
+
     EffectSymbol effectSymbol = EffectSymbol();
     EffectBeatingHeart breathingHeart = EffectBeatingHeart();
     EffectFallingStar fallingStar = EffectFallingStar();
@@ -326,6 +429,35 @@ public:
     EffectDice effectDice = EffectDice();
     EffectRotate effectRotate = EffectRotate();
     EffectRomb effectRomb = EffectRomb();
+    EffectAurora effectAurora = EffectAurora();
+    EffectLavaLamp effectLavaLamp = EffectLavaLamp();
+    EffectGravityParticles effectGravity = EffectGravityParticles();
+    EffectPhysicsParticles effectParticles = EffectPhysicsParticles();
+    EffectSnake effectSnake = EffectSnake();
+
+    float voltage = 0.0f;
+
+    void setVoltage(float v)
+    {
+        voltage = v;
+    }
+
+    int getBatteryValue()
+    {
+        // Границы напряжения
+        const float minVoltage = 1.17f;
+        const float maxVoltage = 1.82f;
+
+        // Ограничение напряжения в допустимых пределах
+        float clampedVoltage = voltage;
+        if (clampedVoltage < minVoltage) clampedVoltage = minVoltage;
+        if (clampedVoltage > maxVoltage) clampedVoltage = maxVoltage;
+
+        // Вычисление процента заряда
+        float percent = ((clampedVoltage - minVoltage) / (maxVoltage - minVoltage)) * 100.0f;
+
+        return static_cast<int>(percent);
+    }
 
     void setActiveEffect(CubeEffects e)
     {
@@ -366,6 +498,26 @@ public:
         case CubeEffects::ROMB:
             activeEffect = &effectRomb;
             Serial.println("activeEffect ROMB");
+            break;
+        case CubeEffects::AURORA:
+            activeEffect = &effectAurora;
+            Serial.println("activeEffect AURORA");
+            break;
+        case CubeEffects::LAVA_LAMP:
+            activeEffect = &effectLavaLamp;
+            Serial.println("activeEffect LAVA_LAMP");
+            break;
+        case CubeEffects::GRAVITY:
+            activeEffect = &effectGravity;
+            Serial.println("activeEffect GRAVITY");
+            break;
+        case CubeEffects::PARTICLES:
+            activeEffect = &effectParticles;
+            Serial.println("activeEffect PARTICLES");
+            break;
+        case CubeEffects::SNAKE:
+            activeEffect = &effectSnake;
+            Serial.println("activeEffect SNAKE");
             break;
         default:
             break;
@@ -429,7 +581,7 @@ public:
 
     std::vector<std::reference_wrapper<Effect>> getEffectsForRotate()
     {
-        return {breathingHeart,fallingStar, soundLevel, effectSpiral, fadePixels, effectDice };
+        return {breathingHeart,fallingStar, soundLevel, effectSpiral, fadePixels, effectDice, effectRomb, effectAurora, effectLavaLamp, effectGravity, effectParticles };
     }
 
 private:

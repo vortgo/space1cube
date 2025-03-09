@@ -3,6 +3,7 @@
 #include "logger.h"
 #include "settings.h"
 #include "wifi_setup.h"
+#include "../include/cube.h"
 
 #define SETT_NO_DB
 #define SETT_NO_TABLE
@@ -15,8 +16,7 @@ void setup()
 {
   Serial.begin(115200);
   Serial.println();
-
-
+  
   logger.println("initMatrices");
   initCube();
 
@@ -36,7 +36,7 @@ void setup()
   logger.println("setupSettings");
   setupSettings();
 
-  cube->setActiveEffect(CubeEffects::ROMB);
+  cube->setActiveEffect(CubeEffects::PARTICLES);
   std::vector<std::reference_wrapper<Matrix>> faces = cube->getFaces();
   for (auto face : faces)
   {
@@ -56,6 +56,7 @@ void loop() {
     // Считываем напряжение
     int adcValue = analogRead(analogPin);
     voltage = adcValue * (3.3 / 4095.0); // Преобразуем в напряжение
+    cube->setVoltage(voltage);
     logger.print("Напряжение: ");
     logger.print(voltage);
     logger.println(" В");
