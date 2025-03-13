@@ -36,7 +36,7 @@ void setup()
   logger.println("setupSettings");
   setupSettings();
 
-  cube->setActiveEffect(CubeEffects::PARTICLES);
+  cube->setActiveEffect(CubeEffects::VORTEX);
   std::vector<std::reference_wrapper<Matrix>> faces = cube->getFaces();
   for (auto face : faces)
   {
