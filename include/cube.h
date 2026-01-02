@@ -34,7 +34,6 @@ enum class CubeEffects
     CYBER_GHOST,
     SPIRIT_WIND,
     VORTEX,
-    PACMAN,
     RAINDROP,
 };
 
@@ -110,28 +109,6 @@ private:
 };
 
 
-
-class EffectPacman : public Effect {
-public:
-    void render(Cube& cube, unsigned long deltaTime) override;
-
-private:
-    struct Pellet {
-        int x, y;
-        uint32_t color;
-    };
-
-    float mouthTimer = 0.0f;
-    bool mouthOpen = true;
-    float pelletSpawnRate = 1.5f; // Замедлена скорость появления еды
-    float timeSinceLastPellet = 0.0f;
-    std::vector<Pellet> pellets;
-    uint32_t yellow = 0xFFFF00;
-    uint32_t black = 0x000000;
-
-    void drawPacman(Cube& cube);
-    void spawnPellet();
-};
 
 class EffectVortex : public Effect {
 public:
@@ -589,7 +566,6 @@ public:
     EffectCyberGhost effectCyberGhost = EffectCyberGhost();
     EffectSpiritWind effectSpiritWind = EffectSpiritWind();
     EffectVortex effectVortex = EffectVortex();
-    EffectPacman effectPacman = EffectPacman();
     EffectRaindropRipples effectRaindropRipples = EffectRaindropRipples();
 
     float voltage = 0.0f;
@@ -692,10 +668,6 @@ public:
             activeEffect = &effectVortex;
             Serial.println("activeEffect VORTEX");
             break;
-        case CubeEffects::PACMAN:
-            activeEffect = &effectPacman;
-            Serial.println("activeEffect PACMAN");
-            break;
         case CubeEffects::RAINDROP:
             activeEffect = &effectRaindropRipples;
             Serial.println("activeEffect RAINDROP");
@@ -762,7 +734,7 @@ public:
 
     std::vector<std::reference_wrapper<Effect>> getEffectsForRotate()
     {
-        return {breathingHeart,fallingStar, soundLevel, effectSpiral, fadePixels, effectDice, effectRomb, effectAurora, effectLavaLamp, effectGravity, effectParticles, effectSnake, effectDynamicGroups, effectCyberGhost, effectSpiritWind, effectVortex, effectPacman, effectRaindropRipples };
+        return {breathingHeart, fallingStar, soundLevel, effectSpiral, fadePixels, effectDice, effectRomb, effectAurora, effectLavaLamp, effectGravity, effectParticles, effectSnake, effectDynamicGroups, effectCyberGhost, effectSpiritWind, effectVortex, effectRaindropRipples};
     }
 
 private:

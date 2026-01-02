@@ -88,6 +88,18 @@ struct RombData
 };
 RombData rombData;
 
+struct AuroraData
+{
+    float period = 5000;
+};
+AuroraData auroraData;
+
+struct LavaLampData
+{
+    float period = 7000;
+};
+LavaLampData lavaLampData;
+
 bool cfm_f, notice_f, alert_f;
 bool onTop = true, onBottom = true, onFront = true, onBack = true, onLeft = true, onRight = true;
 
@@ -211,6 +223,100 @@ void build(sets::Builder &b)
                     Serial.println("set active Romb");
                     cube->effectRomb.period = rombData.period;
                     cube->setActiveEffect(CubeEffects::ROMB);
+                }
+            }
+
+            {
+                sets::Menu m(b, "Aurora");
+                b.Slider("auroraData.period"_h, "Period", 1000, 10000, 100, "", &auroraData.period);
+                if (b.Button("Activate"))
+                {
+                    Serial.println("set active AURORA");
+                    cube->effectAurora.period = auroraData.period;
+                    cube->setActiveEffect(CubeEffects::AURORA);
+                }
+            }
+
+            {
+                sets::Menu m(b, "Lava Lamp");
+                b.Slider("lavaLampData.period"_h, "Period", 2000, 15000, 100, "", &lavaLampData.period);
+                if (b.Button("Activate"))
+                {
+                    Serial.println("set active LAVA_LAMP");
+                    cube->effectLavaLamp.period = lavaLampData.period;
+                    cube->setActiveEffect(CubeEffects::LAVA_LAMP);
+                }
+            }
+
+            {
+                sets::Menu m(b, "Gravity");
+                if (b.Button("Activate"))
+                {
+                    Serial.println("set active GRAVITY");
+                    cube->setActiveEffect(CubeEffects::GRAVITY);
+                }
+            }
+
+            {
+                sets::Menu m(b, "Particles");
+                if (b.Button("Activate"))
+                {
+                    Serial.println("set active PARTICLES");
+                    cube->setActiveEffect(CubeEffects::PARTICLES);
+                }
+            }
+
+            {
+                sets::Menu m(b, "Snake");
+                if (b.Button("Activate"))
+                {
+                    Serial.println("set active SNAKE");
+                    cube->setActiveEffect(CubeEffects::SNAKE);
+                }
+            }
+
+            {
+                sets::Menu m(b, "Dynamic Groups");
+                if (b.Button("Activate"))
+                {
+                    Serial.println("set active DYNAMIC_GROUPS");
+                    cube->setActiveEffect(CubeEffects::DYNAMIC_GROUPS);
+                }
+            }
+
+            {
+                sets::Menu m(b, "Cyber Ghost");
+                if (b.Button("Activate"))
+                {
+                    Serial.println("set active CYBER_GHOST");
+                    cube->setActiveEffect(CubeEffects::CYBER_GHOST);
+                }
+            }
+
+            {
+                sets::Menu m(b, "Spirit Wind");
+                if (b.Button("Activate"))
+                {
+                    Serial.println("set active SPIRIT_WIND");
+                    cube->setActiveEffect(CubeEffects::SPIRIT_WIND);
+                }
+            }
+
+            {
+                sets::Menu m(b, "Vortex");
+                if (b.Button("Activate"))
+                {
+                    Serial.println("set active VORTEX");
+                    cube->setActiveEffect(CubeEffects::VORTEX);
+                }
+            }
+
+            {
+                sets::Menu m(b, "Raindrop");
+                if (b.Button("Activate"))
+                {
+                    Serial.println("set active RAINDROP");
+                    cube->setActiveEffect(CubeEffects::RAINDROP);
                 }
             }
         }
