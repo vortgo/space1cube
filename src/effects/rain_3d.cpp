@@ -1,100 +1,110 @@
 #include "cube.h"
+#include "cube_geometry.h"
+
+// Rain drops falling from top, down sides, to bottom
 
 EffectRain3D::EffectRain3D() {
     for (int i = 0; i < MAX_DROPS; i++) {
         drops[i].active = false;
     }
-    // Initialize some drops
-    for (int i = 0; i < dropCount && i < MAX_DROPS; i++) {
-        spawnDrop(i);
+    spawnTimer = 0;
+}
+
+void EffectRain3D::spawnDrop() {
+    for (int i = 0; i < MAX_DROPS; i++) {
+        if (!drops[i].active) {
+            drops[i].active = true;
+            drops[i].pos.face = 4;  // Start on top
+            drops[i].pos.x = random(8);
+            drops[i].pos.y = random(8);
+            drops[i].speed = 0.1f + random(100) / 500.0f;
+            drops[i].trail = 2 + random(4);
+            drops[i].color = 0x0066FF + random(0x99);  // Blue shades
+
+            // Random initial direction (will flow "down" based on face)
+            drops[i].dirX = 0;
+            drops[i].dirY = -1;
+            return;
+        }
     }
 }
 
-void EffectRain3D::spawnDrop(int idx) {
-    // Rain starts from top (face 4) and falls to sides, then to bottom
-    drops[idx].face = 4;  // Start on top
-    drops[idx].x = random(GRID_W);
-    drops[idx].y = random(GRID_H);
-    drops[idx].speed = 0.5f + (random(100) / 100.0f) * 0.5f;
-    drops[idx].active = true;
-}
-
-void EffectRain3D::updateDrop(RainDrop& drop) {
-    // On top face, move toward edge
-    if (drop.face == 4) {
-        // Move toward nearest edge
-        float cx = GRID_W / 2.0f;
-        float cy = GRID_H / 2.0f;
-        float dx = drop.x - cx;
-        float dy = drop.y - cy;
-
-        if (abs(dx) > abs(dy)) {
-            drop.x += (dx > 0 ? drop.speed : -drop.speed);
-        } else {
-            drop.y += (dy > 0 ? drop.speed : -drop.speed);
-        }
-
-        // Transition to side face
-        if (drop.x < 0) { drop.face = 2; drop.x = GRID_W - 1; drop.y = 0; }
-        else if (drop.x >= GRID_W) { drop.face = 3; drop.x = 0; drop.y = 0; }
-        else if (drop.y < 0) { drop.face = 1; drop.x = GRID_W - 1 - (int)drop.x; drop.y = 0; }
-        else if (drop.y >= GRID_H) { drop.face = 0; drop.y = 0; }
-    }
-    // On side faces, fall down
-    else if (drop.face >= 0 && drop.face <= 3) {
-        drop.y += drop.speed;
-
-        // Transition to bottom face
-        if (drop.y >= GRID_H) {
-            drop.face = 5;  // Bottom
-            drop.y = (drop.face == 0 || drop.face == 1) ? 0 : GRID_H / 2;
-            drop.x = random(GRID_W);
-        }
-    }
-    // On bottom face, spread and disappear
-    else if (drop.face == 5) {
-        drop.speed *= 0.95f;
-        if (drop.speed < 0.1f) {
-            drop.active = false;
-        }
+void EffectRain3D::updateDropDirection(Drop& drop) {
+    // Gravity direction depends on current face
+    switch (drop.pos.face) {
+        case 4: // TOP - fall to any side
+            drop.dirX = 0;
+            drop.dirY = -1;  // Towards front edge
+            break;
+        case 5: // BOTTOM - collect in center
+            drop.dirX = (drop.pos.x < 4) ? 1 : -1;
+            drop.dirY = (drop.pos.y < 4) ? 1 : -1;
+            break;
+        case 0: // FRONT - fall down
+        case 1: // BACK
+        case 2: // LEFT
+        case 3: // RIGHT
+            drop.dirX = 0;
+            drop.dirY = -1;
+            break;
     }
 }
 
 void EffectRain3D::render(Cube& cube, unsigned long deltaTime) {
+    // Spawn new drops
+    spawnTimer += intensity;
+    while (spawnTimer >= 1.0f) {
+        spawnTimer -= 1.0f;
+        spawnDrop();
+    }
+
     cube.clear();
     Matrix* faces[] = {&cube.front, &cube.back, &cube.left, &cube.right, &cube.top, &cube.bottom};
 
-    int activeCount = 0;
-
+    // Update and draw drops
     for (int i = 0; i < MAX_DROPS; i++) {
-        if (!drops[i].active) {
-            if (activeCount < dropCount && random(100) < 5) {
-                spawnDrop(i);
-            }
-            continue;
-        }
-
-        activeCount++;
-        updateDrop(drops[i]);
-
         if (!drops[i].active) continue;
 
+        Drop& drop = drops[i];
+        drop.moveAccum += drop.speed;
+
+        if (drop.moveAccum >= 1.0f) {
+            drop.moveAccum -= 1.0f;
+
+            // Save trail position
+            for (int t = drop.trail - 1; t > 0; t--) {
+                drop.trailPos[t] = drop.trailPos[t-1];
+            }
+            drop.trailPos[0] = drop.pos;
+
+            // Update direction based on current face
+            updateDropDirection(drop);
+
+            // Move
+            CubePos newPos = getNeighbor(drop.pos.face, drop.pos.x, drop.pos.y, drop.dirX, drop.dirY);
+
+            // Check if reached bottom and stayed there
+            if (drop.pos.face == 5 && newPos.face == 5 &&
+                abs(drop.pos.x - 4) <= 1 && abs(drop.pos.y - 4) <= 1) {
+                drop.active = false;
+                continue;
+            }
+
+            drop.pos = newPos;
+        }
+
         // Draw drop with trail
-        int x = (int)drops[i].x;
-        int y = (int)drops[i].y;
-        int f = drops[i].face;
-
-        if (f >= 0 && f < 6 && x >= 0 && x < GRID_W && y >= 0 && y < GRID_H) {
-            // Drop head
-            faces[f]->setPixel(x, y, 0x4444FF);
-
-            // Trail
-            for (int t = 1; t < 3; t++) {
-                int ty = y - t;
-                if (ty >= 0) {
-                    uint8_t brightness = 255 - t * 80;
-                    faces[f]->setPixel(x, ty, (brightness / 4) << 16 | (brightness / 4) << 8 | brightness);
-                }
+        faces[drop.pos.face]->setPixel(drop.pos.x, drop.pos.y, drop.color);
+        for (int t = 0; t < drop.trail; t++) {
+            if (drop.trailPos[t].face >= 0) {
+                float brightness = 1.0f - (float)(t + 1) / (drop.trail + 1);
+                uint8_t b = ((drop.color & 0xFF) * brightness);
+                uint8_t g = (((drop.color >> 8) & 0xFF) * brightness);
+                uint8_t r = (((drop.color >> 16) & 0xFF) * brightness);
+                faces[drop.trailPos[t].face]->setPixel(
+                    drop.trailPos[t].x, drop.trailPos[t].y,
+                    (r << 16) | (g << 8) | b
+                );
             }
         }
     }

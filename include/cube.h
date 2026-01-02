@@ -54,23 +54,17 @@ enum class CubeEffects
     RANDOM_WALK,
     TETRIS_FALL,
     FACE_NUMBERS,
-    // 3D Effects
-    ROLLING_BALL,
+    // 3D Effects (with correct cube geometry)
+    ROLLING_BALL_3D,
     SNAKE_3D,
-    CRAWLING_LIGHT,
-    LAVA_FLOW,
-    CUBE_ROTATION,
-    SPINNING_INNER_CUBE,
-    ROTATING_RING,
-    SURFACE_WAVE,
-    EXPLOSION_3D,
+    WAVE_3D,
     RAIN_3D,
-    BOUNCING_BALL_3D,
-    GRAVITY_3D,
-    MARBLE_MAZE,
-    WORMHOLE,
-    PULSING_CUBE,
-    RUBIKS_CUBE,
+    SPIRAL_3D,
+    PULSE_3D,
+    FIRE_3D,
+    METEOR_3D,
+    SCAN_3D,
+    DNA_3D,
 };
 
 enum class Color : uint32_t
@@ -1036,30 +1030,26 @@ private:
     uint32_t hueToColor(float hue);
 };
 
-// ============ 3D EFFECTS ============
-// Структура для 3D позиции на кубе
-struct CubePosition {
-    int face;  // 0=front, 1=back, 2=left, 3=right, 4=top, 5=bottom
-    int x, y;
-};
+// ============ 3D EFFECTS (with correct cube geometry) ============
+#include "cube_geometry.h"
 
-// ============ ROLLING BALL EFFECT ============
-class EffectRollingBall : public Effect {
+// ============ ROLLING BALL 3D EFFECT ============
+class EffectRollingBall3D : public Effect {
 public:
-    EffectRollingBall();
+    EffectRollingBall3D();
     void render(Cube& cube, unsigned long deltaTime) override;
     float speed = 0.15f;
     int ballSize = 2;
+    int trailLength = 8;
 private:
-    static const int GRID_W = 8;
-    static const int GRID_H = 8;
-    CubePosition pos;
+    CubePos pos;
     int dirX, dirY;
     float moveTimer;
     uint32_t ballColor;
-    void moveBall();
-    void transitionFace();
-    uint32_t getRandomColor();
+    int hue = 0;
+    std::vector<CubePos> trail;
+    uint32_t hsvToRgb(int h, int s, int v);
+    uint32_t dimColor(uint32_t color, float factor);
 };
 
 // ============ SNAKE 3D EFFECT ============
@@ -1068,135 +1058,27 @@ public:
     EffectSnake3D();
     void render(Cube& cube, unsigned long deltaTime) override;
     float speed = 0.12f;
-    int maxLength = 20;
+    int maxLength = 25;
 private:
-    static const int GRID_W = 8;
-    static const int GRID_H = 8;
-    struct Segment { int face, x, y; };
-    std::vector<Segment> snake;
+    std::vector<CubePos> snake;
     int dirX, dirY;
     float moveTimer;
-    CubePosition food;
-    void moveSnake();
+    CubePos food;
+    void reset();
     void spawnFood();
-    void transitionFace(Segment& seg);
 };
 
-// ============ CRAWLING LIGHT EFFECT ============
-class EffectCrawlingLight : public Effect {
+// ============ WAVE 3D EFFECT ============
+class EffectWave3D : public Effect {
 public:
-    EffectCrawlingLight();
+    EffectWave3D();
     void render(Cube& cube, unsigned long deltaTime) override;
-    float speed = 0.08f;
-    int trailLength = 12;
-private:
-    static const int GRID_W = 8;
-    static const int GRID_H = 8;
-    struct EdgePoint { int face, x, y; };
-    std::vector<EdgePoint> path;
-    int currentIdx;
-    float moveTimer;
-    uint32_t color;
-    void buildEdgePath();
-    uint32_t getRandomColor();
-};
-
-// ============ LAVA FLOW EFFECT ============
-class EffectLavaFlow : public Effect {
-public:
-    EffectLavaFlow();
-    void render(Cube& cube, unsigned long deltaTime) override;
-    float flowSpeed = 0.05f;
-private:
-    static const int GRID_W = 8;
-    static const int GRID_H = 8;
-    float lavaLevel[6][8][8];
-    float time;
-    uint32_t getLavaColor(float heat);
-};
-
-// ============ CUBE ROTATION EFFECT ============
-class EffectCubeRotation : public Effect {
-public:
-    EffectCubeRotation();
-    void render(Cube& cube, unsigned long deltaTime) override;
-    float rotationSpeed = 0.02f;
-    int axis = 0;  // 0=X, 1=Y, 2=Z
-private:
-    static const int GRID_W = 8;
-    static const int GRID_H = 8;
-    float angle;
-    uint32_t faceColors[6];
-    void rotateFaces(Cube& cube);
-};
-
-// ============ SPINNING INNER CUBE EFFECT ============
-class EffectSpinningInnerCube : public Effect {
-public:
-    EffectSpinningInnerCube();
-    void render(Cube& cube, unsigned long deltaTime) override;
-    float speed = 0.03f;
-    int cubeSize = 4;
-private:
-    static const int GRID_W = 8;
-    static const int GRID_H = 8;
-    float angleX, angleY, angleZ;
-    uint32_t cubeColor;
-    void project3DPoint(float x, float y, float z, int& px, int& py, float& depth);
-};
-
-// ============ ROTATING RING EFFECT ============
-class EffectRotatingRing : public Effect {
-public:
-    EffectRotatingRing();
-    void render(Cube& cube, unsigned long deltaTime) override;
-    float speed = 0.05f;
-    int ringWidth = 2;
-private:
-    static const int GRID_W = 8;
-    static const int GRID_H = 8;
-    float position;
-    uint32_t ringColor;
-    uint32_t getRandomColor();
-};
-
-// ============ SURFACE WAVE EFFECT ============
-class EffectSurfaceWave : public Effect {
-public:
-    EffectSurfaceWave();
-    void render(Cube& cube, unsigned long deltaTime) override;
-    float waveSpeed = 0.1f;
+    float waveSpeed = 0.08f;
     float frequency = 0.5f;
 private:
-    static const int GRID_W = 8;
-    static const int GRID_H = 8;
     float time;
-    CubePosition origin;
-    float getDistanceOnCube(int face, int x, int y);
-};
-
-// ============ EXPLOSION 3D EFFECT ============
-class EffectExplosion3D : public Effect {
-public:
-    EffectExplosion3D();
-    void render(Cube& cube, unsigned long deltaTime) override;
-    float explosionSpeed = 0.08f;
-    float cooldown = 3000.0f;
-private:
-    static const int GRID_W = 8;
-    static const int GRID_H = 8;
-    static const int MAX_PARTICLES = 30;
-    struct Particle3D {
-        float face, x, y;
-        float vx, vy, vface;
-        float life;
-        uint32_t color;
-        bool active;
-    };
-    Particle3D particles[MAX_PARTICLES];
-    float timeSinceExplosion;
-    bool exploding;
-    void triggerExplosion();
+    CubePos center;
+    uint32_t hsvToColor(float h, float s, float v);
 };
 
 // ============ RAIN 3D EFFECT ============
@@ -1204,150 +1086,111 @@ class EffectRain3D : public Effect {
 public:
     EffectRain3D();
     void render(Cube& cube, unsigned long deltaTime) override;
-    float rainSpeed = 0.15f;
-    int dropCount = 15;
+    float intensity = 0.3f;
 private:
-    static const int GRID_W = 8;
-    static const int GRID_H = 8;
-    static const int MAX_DROPS = 20;
-    struct RainDrop {
-        int face;
-        float x, y;
+    static const int MAX_DROPS = 30;
+    struct Drop {
+        CubePos pos;
+        CubePos trailPos[8];
+        int dirX, dirY;
         float speed;
+        float moveAccum;
+        int trail;
+        uint32_t color;
         bool active;
     };
-    RainDrop drops[MAX_DROPS];
-    void spawnDrop(int idx);
-    void updateDrop(RainDrop& drop);
+    Drop drops[MAX_DROPS];
+    float spawnTimer;
+    void spawnDrop();
+    void updateDropDirection(Drop& drop);
 };
 
-// ============ BOUNCING BALL 3D EFFECT ============
-class EffectBouncingBall3D : public Effect {
+// ============ SPIRAL 3D EFFECT ============
+class EffectSpiral3D : public Effect {
 public:
-    EffectBouncingBall3D();
+    EffectSpiral3D();
     void render(Cube& cube, unsigned long deltaTime) override;
-    float speed = 0.1f;
+    float speed = 1.5f;
+    float spiralTightness = 25.0f;
+    int arms = 3;
 private:
-    static const int GRID_W = 8;
-    static const int GRID_H = 8;
-    float posX, posY, posZ;  // 3D position inside cube
-    float velX, velY, velZ;
-    uint32_t ballColor;
-    void updatePhysics(float dt);
-    void renderOnFaces(Cube& cube);
+    float angle;
+    uint32_t hsvToColor(float h, float s, float v);
 };
 
-// ============ GRAVITY 3D EFFECT ============
-class EffectGravity3D : public Effect {
+// ============ PULSE 3D EFFECT ============
+class EffectPulse3D : public Effect {
 public:
-    EffectGravity3D();
+    EffectPulse3D();
     void render(Cube& cube, unsigned long deltaTime) override;
-    float gravity = 0.01f;
-    int particleCount = 20;
+    float speed = 0.15f;
+    int rings = 3;
 private:
-    static const int GRID_W = 8;
-    static const int GRID_H = 8;
-    static const int MAX_PARTICLES = 30;
-    struct GravityParticle {
-        int face;
-        float x, y;
-        float vx, vy;
-        uint32_t color;
-    };
-    GravityParticle particles[MAX_PARTICLES];
-    int gravityFace;  // which face is "down"
-    float rotateTimer;
-    void applyGravity();
-};
-
-// ============ MARBLE MAZE EFFECT ============
-class EffectMarbleMaze : public Effect {
-public:
-    EffectMarbleMaze();
-    void render(Cube& cube, unsigned long deltaTime) override;
-    float tiltSpeed = 0.02f;
-private:
-    static const int GRID_W = 8;
-    static const int GRID_H = 8;
-    float marbleX, marbleY;
-    float velX, velY;
-    int currentFace;
-    float tiltX, tiltY;
-    float tiltTime;
-    uint8_t maze[8][8];
-    void generateMaze();
-    void updateMarble();
-};
-
-// ============ WORMHOLE EFFECT ============
-class EffectWormhole : public Effect {
-public:
-    EffectWormhole();
-    void render(Cube& cube, unsigned long deltaTime) override;
-    float speed = 0.05f;
-    float tunnelRadius = 3.0f;
-private:
-    static const int GRID_W = 8;
-    static const int GRID_H = 8;
-    float depth;
-    float rotation;
-    uint32_t getColorAtDepth(float d);
-};
-
-// ============ PULSING CUBE EFFECT ============
-class EffectPulsingCube : public Effect {
-public:
-    EffectPulsingCube();
-    void render(Cube& cube, unsigned long deltaTime) override;
-    float pulseSpeed = 0.03f;
-    float minBrightness = 0.2f;
-private:
-    static const int GRID_W = 8;
-    static const int GRID_H = 8;
     float phase;
-    uint32_t baseColor;
-    float breathCycle;
-    uint32_t getRandomColor();
+    uint32_t hsvToColor(float h, float s, float v);
 };
 
-// ============ RUBIKS CUBE EFFECT ============
-// Кубик Рубика - перемешивается и собирается
-class EffectRubiksCube : public Effect {
+// ============ FIRE 3D EFFECT ============
+class EffectFire3D : public Effect {
 public:
-    EffectRubiksCube();
+    EffectFire3D();
     void render(Cube& cube, unsigned long deltaTime) override;
-    float solveSpeed = 0.05f;       // Скорость сборки
-    float scrambleSpeed = 0.2f;     // Скорость перемешивания
-    float pauseDuration = 2000.0f;  // Пауза после сборки (мс)
-
+    float cooldown = 2.0f;
+    float sparking = 0.6f;
 private:
-    static const int GRID_W = 8;
-    static const int GRID_H = 8;
-    static const int CUBE_SIZE = 3;  // 3x3 кубик Рубика
+    uint8_t heat[6][8][8];
+    uint32_t heatToColor(uint8_t temperature);
+};
 
-    // Цвета граней: 0=front(красный), 1=back(оранжевый), 2=left(синий),
-    //               3=right(зелёный), 4=top(белый), 5=bottom(жёлтый)
-    uint32_t faceColors[6][CUBE_SIZE][CUBE_SIZE];
-    uint32_t solvedColors[6];
+// ============ METEOR 3D EFFECT ============
+class EffectMeteor3D : public Effect {
+public:
+    EffectMeteor3D();
+    void render(Cube& cube, unsigned long deltaTime) override;
+    float intensity = 0.4f;
+private:
+    static const int MAX_METEORS = 8;
+    struct Meteor {
+        CubePos pos;
+        CubePos trail[12];
+        int dirX, dirY;
+        float speed;
+        float moveAccum;
+        int length;
+        int hue;
+        int traveled;
+        bool active;
+    };
+    Meteor meteors[MAX_METEORS];
+    float spawnTimer;
+    void spawnMeteor();
+    uint32_t hsvToColor(float h, float s, float v);
+};
 
-    enum State { SCRAMBLING, SOLVING, PAUSED, SOLVED };
-    State state;
-    float stateTimer;
-    float moveTimer;
+// ============ SCAN 3D EFFECT ============
+class EffectScan3D : public Effect {
+public:
+    EffectScan3D();
+    void render(Cube& cube, unsigned long deltaTime) override;
+    float speed = 0.2f;
+    float thickness = 2.0f;
+private:
+    float position;
+    int direction;
+    int axis;
+    uint32_t hsvToColor(float h, float s, float v);
+};
 
-    // Запись ходов для решения
-    struct Move { int face; bool clockwise; };
-    std::vector<Move> moveHistory;
-    int currentMoveIdx;
-    int scrambleMoves;
-    int totalScrambleMoves;
-
-    void initSolved();
-    void rotateFace(int face, bool clockwise);
-    void performMove();
-    void addScrambleMove();
-    void drawFace(Matrix& matrix, int faceIdx);
-    uint32_t getCellColor(int faceIdx, int row, int col);
+// ============ DNA 3D EFFECT ============
+class EffectDNA3D : public Effect {
+public:
+    EffectDNA3D();
+    void render(Cube& cube, unsigned long deltaTime) override;
+    float speed = 2.0f;
+    float helixTwist = 15.0f;
+    float radius = 2.5f;
+private:
+    float rotation;
 };
 
 /**
@@ -1399,23 +1242,17 @@ public:
     EffectRandomWalk effectRandomWalk = EffectRandomWalk();
     EffectTetrisFall effectTetrisFall = EffectTetrisFall();
     EffectFaceNumbers effectFaceNumbers = EffectFaceNumbers();
-    // 3D Effects
-    EffectRollingBall effectRollingBall = EffectRollingBall();
+    // 3D Effects (with correct cube geometry)
+    EffectRollingBall3D effectRollingBall3D = EffectRollingBall3D();
     EffectSnake3D effectSnake3D = EffectSnake3D();
-    EffectCrawlingLight effectCrawlingLight = EffectCrawlingLight();
-    EffectLavaFlow effectLavaFlow = EffectLavaFlow();
-    EffectCubeRotation effectCubeRotation = EffectCubeRotation();
-    EffectSpinningInnerCube effectSpinningInnerCube = EffectSpinningInnerCube();
-    EffectRotatingRing effectRotatingRing = EffectRotatingRing();
-    EffectSurfaceWave effectSurfaceWave = EffectSurfaceWave();
-    EffectExplosion3D effectExplosion3D = EffectExplosion3D();
+    EffectWave3D effectWave3D = EffectWave3D();
     EffectRain3D effectRain3D = EffectRain3D();
-    EffectBouncingBall3D effectBouncingBall3D = EffectBouncingBall3D();
-    EffectGravity3D effectGravity3D = EffectGravity3D();
-    EffectMarbleMaze effectMarbleMaze = EffectMarbleMaze();
-    EffectWormhole effectWormhole = EffectWormhole();
-    EffectPulsingCube effectPulsingCube = EffectPulsingCube();
-    EffectRubiksCube effectRubiksCube = EffectRubiksCube();
+    EffectSpiral3D effectSpiral3D = EffectSpiral3D();
+    EffectPulse3D effectPulse3D = EffectPulse3D();
+    EffectFire3D effectFire3D = EffectFire3D();
+    EffectMeteor3D effectMeteor3D = EffectMeteor3D();
+    EffectScan3D effectScan3D = EffectScan3D();
+    EffectDNA3D effectDNA3D = EffectDNA3D();
 
     float voltage = 0.0f;
 
@@ -1597,70 +1434,46 @@ public:
             activeEffect = &effectFaceNumbers;
             Serial.println("activeEffect FACE_NUMBERS");
             break;
-        // 3D Effects
-        case CubeEffects::ROLLING_BALL:
-            activeEffect = &effectRollingBall;
-            Serial.println("activeEffect ROLLING_BALL");
+        // 3D Effects (with correct cube geometry)
+        case CubeEffects::ROLLING_BALL_3D:
+            activeEffect = &effectRollingBall3D;
+            Serial.println("activeEffect ROLLING_BALL_3D");
             break;
         case CubeEffects::SNAKE_3D:
             activeEffect = &effectSnake3D;
             Serial.println("activeEffect SNAKE_3D");
             break;
-        case CubeEffects::CRAWLING_LIGHT:
-            activeEffect = &effectCrawlingLight;
-            Serial.println("activeEffect CRAWLING_LIGHT");
-            break;
-        case CubeEffects::LAVA_FLOW:
-            activeEffect = &effectLavaFlow;
-            Serial.println("activeEffect LAVA_FLOW");
-            break;
-        case CubeEffects::CUBE_ROTATION:
-            activeEffect = &effectCubeRotation;
-            Serial.println("activeEffect CUBE_ROTATION");
-            break;
-        case CubeEffects::SPINNING_INNER_CUBE:
-            activeEffect = &effectSpinningInnerCube;
-            Serial.println("activeEffect SPINNING_INNER_CUBE");
-            break;
-        case CubeEffects::ROTATING_RING:
-            activeEffect = &effectRotatingRing;
-            Serial.println("activeEffect ROTATING_RING");
-            break;
-        case CubeEffects::SURFACE_WAVE:
-            activeEffect = &effectSurfaceWave;
-            Serial.println("activeEffect SURFACE_WAVE");
-            break;
-        case CubeEffects::EXPLOSION_3D:
-            activeEffect = &effectExplosion3D;
-            Serial.println("activeEffect EXPLOSION_3D");
+        case CubeEffects::WAVE_3D:
+            activeEffect = &effectWave3D;
+            Serial.println("activeEffect WAVE_3D");
             break;
         case CubeEffects::RAIN_3D:
             activeEffect = &effectRain3D;
             Serial.println("activeEffect RAIN_3D");
             break;
-        case CubeEffects::BOUNCING_BALL_3D:
-            activeEffect = &effectBouncingBall3D;
-            Serial.println("activeEffect BOUNCING_BALL_3D");
+        case CubeEffects::SPIRAL_3D:
+            activeEffect = &effectSpiral3D;
+            Serial.println("activeEffect SPIRAL_3D");
             break;
-        case CubeEffects::GRAVITY_3D:
-            activeEffect = &effectGravity3D;
-            Serial.println("activeEffect GRAVITY_3D");
+        case CubeEffects::PULSE_3D:
+            activeEffect = &effectPulse3D;
+            Serial.println("activeEffect PULSE_3D");
             break;
-        case CubeEffects::MARBLE_MAZE:
-            activeEffect = &effectMarbleMaze;
-            Serial.println("activeEffect MARBLE_MAZE");
+        case CubeEffects::FIRE_3D:
+            activeEffect = &effectFire3D;
+            Serial.println("activeEffect FIRE_3D");
             break;
-        case CubeEffects::WORMHOLE:
-            activeEffect = &effectWormhole;
-            Serial.println("activeEffect WORMHOLE");
+        case CubeEffects::METEOR_3D:
+            activeEffect = &effectMeteor3D;
+            Serial.println("activeEffect METEOR_3D");
             break;
-        case CubeEffects::PULSING_CUBE:
-            activeEffect = &effectPulsingCube;
-            Serial.println("activeEffect PULSING_CUBE");
+        case CubeEffects::SCAN_3D:
+            activeEffect = &effectScan3D;
+            Serial.println("activeEffect SCAN_3D");
             break;
-        case CubeEffects::RUBIKS_CUBE:
-            activeEffect = &effectRubiksCube;
-            Serial.println("activeEffect RUBIKS_CUBE");
+        case CubeEffects::DNA_3D:
+            activeEffect = &effectDNA3D;
+            Serial.println("activeEffect DNA_3D");
             break;
         default:
             break;
@@ -1724,7 +1537,7 @@ public:
 
     std::vector<std::reference_wrapper<Effect>> getEffectsForRotate()
     {
-        return {breathingHeart, fallingStar, soundLevel, effectSpiral, fadePixels, effectDice, effectRomb, effectAurora, effectLavaLamp, effectGravity, effectParticles, effectSnake, effectDynamicGroups, effectCyberGhost, effectSpiritWind, effectVortex, effectRaindropRipples, effectPlasma, effectMatrixRain, effectGameOfLife, effectFireworks, effectStarfield, effectLightning, effectBouncingBalls, effectRipplePond, effectFireflies, effectHeartbeatPulse, effectCometTrail, effectSparkle, effectCornerPulse, effectScanLine, effectPixelSort, effectGrowingSquares, effectRandomWalk, effectTetrisFall, effectRollingBall, effectSnake3D, effectCrawlingLight, effectLavaFlow, effectCubeRotation, effectSpinningInnerCube, effectRotatingRing, effectSurfaceWave, effectExplosion3D, effectRain3D, effectBouncingBall3D, effectGravity3D, effectMarbleMaze, effectWormhole, effectPulsingCube, effectRubiksCube};
+        return {breathingHeart, fallingStar, soundLevel, effectSpiral, fadePixels, effectDice, effectRomb, effectAurora, effectLavaLamp, effectGravity, effectParticles, effectSnake, effectDynamicGroups, effectCyberGhost, effectSpiritWind, effectVortex, effectRaindropRipples, effectPlasma, effectMatrixRain, effectGameOfLife, effectFireworks, effectStarfield, effectLightning, effectBouncingBalls, effectRipplePond, effectFireflies, effectHeartbeatPulse, effectCometTrail, effectSparkle, effectCornerPulse, effectScanLine, effectPixelSort, effectGrowingSquares, effectRandomWalk, effectTetrisFall, effectRollingBall3D, effectSnake3D, effectWave3D, effectRain3D, effectSpiral3D, effectPulse3D, effectFire3D, effectMeteor3D, effectScan3D, effectDNA3D};
     }
 
 private:

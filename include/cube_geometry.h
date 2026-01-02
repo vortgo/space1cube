@@ -1,0 +1,108 @@
+#ifndef CUBE_GEOMETRY_H
+#define CUBE_GEOMETRY_H
+
+// Cube face layout (from user's diagram):
+//         [5̄]         (top, inverted)
+// [2][3][1][4]        (back-left-front-right)
+//         [6̄]         (bottom, inverted)
+//
+// Face indices in code:
+// 0 = front (face 1)
+// 1 = back (face 2)
+// 2 = left (face 3)
+// 3 = right (face 4)
+// 4 = top (face 5, inverted)
+// 5 = bottom (face 6, inverted)
+//
+// Horizontal ring: back(1) ← left(2) ← front(0) ← right(3) ← back(1)
+// Top/bottom are inverted (rotated 180° relative to front)
+
+struct CubePos {
+    int face;  // 0-5
+    int x, y;  // 0-7
+};
+
+// Get neighbor position when moving in a direction
+// Returns new position after crossing edge (if needed)
+inline CubePos getNeighbor(int face, int x, int y, int dx, int dy) {
+    const int W = 8;
+    const int H = 8;
+
+    int newX = x + dx;
+    int newY = y + dy;
+
+    // Check if still on same face
+    if (newX >= 0 && newX < W && newY >= 0 && newY < H) {
+        return {face, newX, newY};
+    }
+
+    CubePos result = {face, newX, newY};
+
+    // Horizontal ring transitions (same Y orientation)
+    // front(0) ↔ left(2) ↔ back(1) ↔ right(3) ↔ front(0)
+
+    if (face == 0) { // FRONT
+        if (newX < 0) { result = {2, W-1, y}; }           // → left
+        else if (newX >= W) { result = {3, 0, y}; }       // → right
+        else if (newY >= H) { result = {4, W-1-x, 0}; }   // → top (inverted)
+        else if (newY < 0) { result = {5, W-1-x, H-1}; }  // → bottom (inverted)
+    }
+    else if (face == 2) { // LEFT
+        if (newX < 0) { result = {1, W-1, y}; }           // → back
+        else if (newX >= W) { result = {0, 0, y}; }       // → front
+        else if (newY >= H) { result = {4, 0, W-1-x}; }   // → top (rotated)
+        else if (newY < 0) { result = {5, 0, x}; }        // → bottom (rotated)
+    }
+    else if (face == 1) { // BACK
+        if (newX < 0) { result = {3, W-1, y}; }           // → right
+        else if (newX >= W) { result = {2, 0, y}; }       // → left
+        else if (newY >= H) { result = {4, x, H-1}; }     // → top
+        else if (newY < 0) { result = {5, x, 0}; }        // → bottom
+    }
+    else if (face == 3) { // RIGHT
+        if (newX < 0) { result = {0, W-1, y}; }           // → front
+        else if (newX >= W) { result = {1, 0, y}; }       // → back
+        else if (newY >= H) { result = {4, W-1, x}; }     // → top (rotated)
+        else if (newY < 0) { result = {5, W-1, H-1-x}; }  // → bottom (rotated)
+    }
+    else if (face == 4) { // TOP
+        if (newX < 0) { result = {2, H-1-y, H-1}; }       // → left
+        else if (newX >= W) { result = {3, y, H-1}; }     // → right
+        else if (newY >= H) { result = {1, x, H-1}; }     // → back
+        else if (newY < 0) { result = {0, W-1-x, H-1}; }  // → front (inverted)
+    }
+    else if (face == 5) { // BOTTOM
+        if (newX < 0) { result = {2, y, 0}; }             // → left
+        else if (newX >= W) { result = {3, H-1-y, 0}; }   // → right
+        else if (newY >= H) { result = {0, W-1-x, 0}; }   // → front (inverted)
+        else if (newY < 0) { result = {1, x, 0}; }        // → back
+    }
+
+    return result;
+}
+
+// Move position in direction, handling face transitions
+inline void moveOnCube(CubePos& pos, int dx, int dy) {
+    pos = getNeighbor(pos.face, pos.x, pos.y, dx, dy);
+}
+
+// Get all 4 neighbors of a position
+inline void getNeighbors(const CubePos& pos, CubePos neighbors[4]) {
+    neighbors[0] = getNeighbor(pos.face, pos.x, pos.y, 1, 0);   // right
+    neighbors[1] = getNeighbor(pos.face, pos.x, pos.y, -1, 0);  // left
+    neighbors[2] = getNeighbor(pos.face, pos.x, pos.y, 0, 1);   // up
+    neighbors[3] = getNeighbor(pos.face, pos.x, pos.y, 0, -1);  // down
+}
+
+// Calculate "global" distance between two positions on cube surface
+inline float cubeDistance(const CubePos& a, const CubePos& b) {
+    if (a.face == b.face) {
+        float dx = a.x - b.x;
+        float dy = a.y - b.y;
+        return sqrt(dx*dx + dy*dy);
+    }
+    // Simplified: if on different faces, estimate distance
+    return 8.0f + abs(a.x - b.x) + abs(a.y - b.y);
+}
+
+#endif
