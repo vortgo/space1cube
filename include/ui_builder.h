@@ -163,6 +163,52 @@ TetrisFallData tetrisFallData;
 struct FaceNumbersData { bool colorCycle = true; float cycleSpeed = 0.01f; };
 FaceNumbersData faceNumbersData;
 
+// 3D Effects Data
+struct RollingBallData { float speed = 0.15f; int ballSize = 2; };
+RollingBallData rollingBallData;
+
+struct Snake3DData { float speed = 0.12f; int maxLength = 20; };
+Snake3DData snake3DData;
+
+struct CrawlingLightData { float speed = 0.08f; int trailLength = 12; };
+CrawlingLightData crawlingLightData;
+
+struct LavaFlowData { float flowSpeed = 0.05f; };
+LavaFlowData lavaFlowData;
+
+struct CubeRotationData { float rotationSpeed = 0.02f; int axis = 0; };
+CubeRotationData cubeRotationData;
+
+struct SpinningInnerCubeData { float speed = 0.03f; int cubeSize = 4; };
+SpinningInnerCubeData spinningInnerCubeData;
+
+struct RotatingRingData { float speed = 0.05f; int ringWidth = 2; };
+RotatingRingData rotatingRingData;
+
+struct SurfaceWaveData { float waveSpeed = 0.1f; float frequency = 0.5f; };
+SurfaceWaveData surfaceWaveData;
+
+struct Explosion3DData { float explosionSpeed = 0.08f; float cooldown = 3000.0f; };
+Explosion3DData explosion3DData;
+
+struct Rain3DData { float rainSpeed = 0.15f; int dropCount = 15; };
+Rain3DData rain3DData;
+
+struct BouncingBall3DData { float speed = 0.1f; };
+BouncingBall3DData bouncingBall3DData;
+
+struct Gravity3DData { float gravity = 0.01f; int particleCount = 20; };
+Gravity3DData gravity3DData;
+
+struct MarbleMazeData { float tiltSpeed = 0.02f; };
+MarbleMazeData marbleMazeData;
+
+struct WormholeData { float speed = 0.05f; float tunnelRadius = 3.0f; };
+WormholeData wormholeData;
+
+struct PulsingCubeData { float pulseSpeed = 0.03f; float minBrightness = 0.2f; };
+PulsingCubeData pulsingCubeData;
+
 struct VortexData
 {
     float spawnRate = 0.08f;
@@ -693,6 +739,166 @@ void build(sets::Builder &b)
                     cube->effectFaceNumbers.colorCycle = faceNumbersData.colorCycle;
                     cube->effectFaceNumbers.cycleSpeed = faceNumbersData.cycleSpeed;
                     cube->setActiveEffect(CubeEffects::FACE_NUMBERS);
+                }
+            }
+
+            // ============ 3D EFFECTS ============
+            {
+                sets::Menu m(b, "Rolling Ball 3D");
+                b.Slider("rb.speed"_h, "Speed", 0.05f, 0.3f, 0.02f, "", &rollingBallData.speed);
+                b.Slider("rb.size"_h, "Ball Size", 1, 3, 1, "", &rollingBallData.ballSize);
+                if (b.Button("Activate")) {
+                    cube->effectRollingBall.speed = rollingBallData.speed;
+                    cube->effectRollingBall.ballSize = rollingBallData.ballSize;
+                    cube->setActiveEffect(CubeEffects::ROLLING_BALL);
+                }
+            }
+
+            {
+                sets::Menu m(b, "Snake 3D");
+                b.Slider("s3d.speed"_h, "Speed", 0.05f, 0.25f, 0.02f, "", &snake3DData.speed);
+                b.Slider("s3d.len"_h, "Max Length", 10, 30, 2, "", &snake3DData.maxLength);
+                if (b.Button("Activate")) {
+                    cube->effectSnake3D.speed = snake3DData.speed;
+                    cube->effectSnake3D.maxLength = snake3DData.maxLength;
+                    cube->setActiveEffect(CubeEffects::SNAKE_3D);
+                }
+            }
+
+            {
+                sets::Menu m(b, "Crawling Light");
+                b.Slider("cl.speed"_h, "Speed", 0.03f, 0.15f, 0.01f, "", &crawlingLightData.speed);
+                b.Slider("cl.trail"_h, "Trail Length", 5, 20, 1, "", &crawlingLightData.trailLength);
+                if (b.Button("Activate")) {
+                    cube->effectCrawlingLight.speed = crawlingLightData.speed;
+                    cube->effectCrawlingLight.trailLength = crawlingLightData.trailLength;
+                    cube->setActiveEffect(CubeEffects::CRAWLING_LIGHT);
+                }
+            }
+
+            {
+                sets::Menu m(b, "Lava Flow");
+                b.Slider("lf.speed"_h, "Flow Speed", 0.02f, 0.1f, 0.01f, "", &lavaFlowData.flowSpeed);
+                if (b.Button("Activate")) {
+                    cube->effectLavaFlow.flowSpeed = lavaFlowData.flowSpeed;
+                    cube->setActiveEffect(CubeEffects::LAVA_FLOW);
+                }
+            }
+
+            {
+                sets::Menu m(b, "Cube Rotation");
+                b.Slider("cr.speed"_h, "Rotation Speed", 0.01f, 0.05f, 0.005f, "", &cubeRotationData.rotationSpeed);
+                b.Slider("cr.axis"_h, "Axis (0=X,1=Y,2=Z)", 0, 2, 1, "", &cubeRotationData.axis);
+                if (b.Button("Activate")) {
+                    cube->effectCubeRotation.rotationSpeed = cubeRotationData.rotationSpeed;
+                    cube->effectCubeRotation.axis = cubeRotationData.axis;
+                    cube->setActiveEffect(CubeEffects::CUBE_ROTATION);
+                }
+            }
+
+            {
+                sets::Menu m(b, "Spinning Inner Cube");
+                b.Slider("sic.speed"_h, "Speed", 0.01f, 0.08f, 0.01f, "", &spinningInnerCubeData.speed);
+                b.Slider("sic.size"_h, "Cube Size", 2, 6, 1, "", &spinningInnerCubeData.cubeSize);
+                if (b.Button("Activate")) {
+                    cube->effectSpinningInnerCube.speed = spinningInnerCubeData.speed;
+                    cube->effectSpinningInnerCube.cubeSize = spinningInnerCubeData.cubeSize;
+                    cube->setActiveEffect(CubeEffects::SPINNING_INNER_CUBE);
+                }
+            }
+
+            {
+                sets::Menu m(b, "Rotating Ring");
+                b.Slider("rr.speed"_h, "Speed", 0.02f, 0.12f, 0.01f, "", &rotatingRingData.speed);
+                b.Slider("rr.width"_h, "Ring Width", 1, 4, 1, "", &rotatingRingData.ringWidth);
+                if (b.Button("Activate")) {
+                    cube->effectRotatingRing.speed = rotatingRingData.speed;
+                    cube->effectRotatingRing.ringWidth = rotatingRingData.ringWidth;
+                    cube->setActiveEffect(CubeEffects::ROTATING_RING);
+                }
+            }
+
+            {
+                sets::Menu m(b, "Surface Wave");
+                b.Slider("sw.speed"_h, "Wave Speed", 0.05f, 0.2f, 0.02f, "", &surfaceWaveData.waveSpeed);
+                b.Slider("sw.freq"_h, "Frequency", 0.2f, 1.0f, 0.1f, "", &surfaceWaveData.frequency);
+                if (b.Button("Activate")) {
+                    cube->effectSurfaceWave.waveSpeed = surfaceWaveData.waveSpeed;
+                    cube->effectSurfaceWave.frequency = surfaceWaveData.frequency;
+                    cube->setActiveEffect(CubeEffects::SURFACE_WAVE);
+                }
+            }
+
+            {
+                sets::Menu m(b, "Explosion 3D");
+                b.Slider("ex.speed"_h, "Explosion Speed", 0.03f, 0.15f, 0.01f, "", &explosion3DData.explosionSpeed);
+                b.Slider("ex.cool"_h, "Cooldown (ms)", 1500.0f, 5000.0f, 500.0f, "", &explosion3DData.cooldown);
+                if (b.Button("Activate")) {
+                    cube->effectExplosion3D.explosionSpeed = explosion3DData.explosionSpeed;
+                    cube->effectExplosion3D.cooldown = explosion3DData.cooldown;
+                    cube->setActiveEffect(CubeEffects::EXPLOSION_3D);
+                }
+            }
+
+            {
+                sets::Menu m(b, "Rain 3D");
+                b.Slider("r3d.speed"_h, "Rain Speed", 0.08f, 0.25f, 0.02f, "", &rain3DData.rainSpeed);
+                b.Slider("r3d.count"_h, "Drop Count", 5, 20, 1, "", &rain3DData.dropCount);
+                if (b.Button("Activate")) {
+                    cube->effectRain3D.rainSpeed = rain3DData.rainSpeed;
+                    cube->effectRain3D.dropCount = rain3DData.dropCount;
+                    cube->setActiveEffect(CubeEffects::RAIN_3D);
+                }
+            }
+
+            {
+                sets::Menu m(b, "Bouncing Ball 3D");
+                b.Slider("bb3d.speed"_h, "Speed", 0.05f, 0.2f, 0.02f, "", &bouncingBall3DData.speed);
+                if (b.Button("Activate")) {
+                    cube->effectBouncingBall3D.speed = bouncingBall3DData.speed;
+                    cube->setActiveEffect(CubeEffects::BOUNCING_BALL_3D);
+                }
+            }
+
+            {
+                sets::Menu m(b, "Gravity 3D");
+                b.Slider("g3d.grav"_h, "Gravity", 0.005f, 0.03f, 0.005f, "", &gravity3DData.gravity);
+                b.Slider("g3d.count"_h, "Particle Count", 10, 30, 2, "", &gravity3DData.particleCount);
+                if (b.Button("Activate")) {
+                    cube->effectGravity3D.gravity = gravity3DData.gravity;
+                    cube->effectGravity3D.particleCount = gravity3DData.particleCount;
+                    cube->setActiveEffect(CubeEffects::GRAVITY_3D);
+                }
+            }
+
+            {
+                sets::Menu m(b, "Marble Maze");
+                b.Slider("mm.tilt"_h, "Tilt Speed", 0.01f, 0.05f, 0.005f, "", &marbleMazeData.tiltSpeed);
+                if (b.Button("Activate")) {
+                    cube->effectMarbleMaze.tiltSpeed = marbleMazeData.tiltSpeed;
+                    cube->setActiveEffect(CubeEffects::MARBLE_MAZE);
+                }
+            }
+
+            {
+                sets::Menu m(b, "Wormhole");
+                b.Slider("wh.speed"_h, "Speed", 0.02f, 0.1f, 0.01f, "", &wormholeData.speed);
+                b.Slider("wh.radius"_h, "Tunnel Radius", 2.0f, 5.0f, 0.5f, "", &wormholeData.tunnelRadius);
+                if (b.Button("Activate")) {
+                    cube->effectWormhole.speed = wormholeData.speed;
+                    cube->effectWormhole.tunnelRadius = wormholeData.tunnelRadius;
+                    cube->setActiveEffect(CubeEffects::WORMHOLE);
+                }
+            }
+
+            {
+                sets::Menu m(b, "Pulsing Cube");
+                b.Slider("pc.speed"_h, "Pulse Speed", 0.01f, 0.08f, 0.01f, "", &pulsingCubeData.pulseSpeed);
+                b.Slider("pc.min"_h, "Min Brightness", 0.1f, 0.5f, 0.05f, "", &pulsingCubeData.minBrightness);
+                if (b.Button("Activate")) {
+                    cube->effectPulsingCube.pulseSpeed = pulsingCubeData.pulseSpeed;
+                    cube->effectPulsingCube.minBrightness = pulsingCubeData.minBrightness;
+                    cube->setActiveEffect(CubeEffects::PULSING_CUBE);
                 }
             }
         }
