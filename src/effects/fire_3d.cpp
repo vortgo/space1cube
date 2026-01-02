@@ -33,7 +33,8 @@ void EffectFire3D::render(Cube& cube, unsigned long deltaTime) {
     for (int x = 0; x < 8; x++) {
         for (int y = 0; y < 8; y++) {
             if (random(100) < (int)(sparking * 100)) {
-                heat[5][x][y] = min(255, heat[5][x][y] + random(160, 255));
+                int newHeat = heat[5][x][y] + random(160, 255);
+                heat[5][x][y] = (newHeat > 255) ? 255 : newHeat;
             }
         }
     }
@@ -53,7 +54,8 @@ void EffectFire3D::render(Cube& cube, unsigned long deltaTime) {
                 case 3: bottomHeat = heat[5][7][7-x]; break;  // right
                 default: bottomHeat = 0;
             }
-            heat[f][x][0] = max(heat[f][x][0], bottomHeat - 20);
+            int newVal = bottomHeat - 20;
+            if (newVal > heat[f][x][0]) heat[f][x][0] = (newVal > 0) ? newVal : 0;
         }
     }
 
@@ -71,10 +73,10 @@ void EffectFire3D::render(Cube& cube, unsigned long deltaTime) {
 
     // From sides to top
     for (int x = 0; x < 8; x++) {
-        heat[4][x][0] = max(heat[4][x][0], heat[0][7-x][7] - 30);      // from front
-        heat[4][x][7] = max(heat[4][x][7], heat[1][x][7] - 30);        // from back
-        heat[4][0][x] = max(heat[4][0][x], heat[2][7-x][7] - 30);      // from left
-        heat[4][7][x] = max(heat[4][7][x], heat[3][x][7] - 30);        // from right
+        int h0 = heat[0][7-x][7] - 30; if (h0 > heat[4][x][0]) heat[4][x][0] = (h0 > 0) ? h0 : 0;
+        int h1 = heat[1][x][7] - 30;   if (h1 > heat[4][x][7]) heat[4][x][7] = (h1 > 0) ? h1 : 0;
+        int h2 = heat[2][7-x][7] - 30; if (h2 > heat[4][0][x]) heat[4][0][x] = (h2 > 0) ? h2 : 0;
+        int h3 = heat[3][x][7] - 30;   if (h3 > heat[4][7][x]) heat[4][7][x] = (h3 > 0) ? h3 : 0;
     }
 
     // Draw fire
