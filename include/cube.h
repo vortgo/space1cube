@@ -65,6 +65,7 @@ enum class CubeEffects
     METEOR_3D,
     SCAN_3D,
     DNA_3D,
+    CROSS_3D,
 };
 
 enum class Color : uint32_t
@@ -1193,6 +1194,21 @@ private:
     float rotation;
 };
 
+// Test effect: 3 crossing strips to verify face transitions
+class EffectCross3D : public Effect {
+public:
+    EffectCross3D();
+    void render(Cube& cube, unsigned long deltaTime) override;
+    float speed = 0.05f;
+    int stripWidth = 2;
+    int stripLength = 4;
+private:
+    float pos1, pos2, pos3;  // Position of each strip (0-32 for full ring)
+    uint32_t color1 = 0xFF0000;  // Red - horizontal ring
+    uint32_t color2 = 0x00FF00;  // Green - vertical ring 1
+    uint32_t color3 = 0x0000FF;  // Blue - vertical ring 2
+};
+
 /**
  * @brief Класс Cube объединяет 6 матриц – по одной для каждой грани куба.
  *
@@ -1253,6 +1269,7 @@ public:
     EffectMeteor3D effectMeteor3D = EffectMeteor3D();
     EffectScan3D effectScan3D = EffectScan3D();
     EffectDNA3D effectDNA3D = EffectDNA3D();
+    EffectCross3D effectCross3D = EffectCross3D();
 
     float voltage = 0.0f;
 
@@ -1474,6 +1491,10 @@ public:
         case CubeEffects::DNA_3D:
             activeEffect = &effectDNA3D;
             Serial.println("activeEffect DNA_3D");
+            break;
+        case CubeEffects::CROSS_3D:
+            activeEffect = &effectCross3D;
+            Serial.println("activeEffect CROSS_3D");
             break;
         default:
             break;

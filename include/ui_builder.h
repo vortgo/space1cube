@@ -194,6 +194,9 @@ Scan3DData scan3DData;
 struct DNA3DData { float speed = 2.0f; float helixTwist = 15.0f; float radius = 2.5f; };
 DNA3DData dna3DData;
 
+struct Cross3DData { float speed = 0.05f; };
+Cross3DData cross3DData;
+
 struct VortexData
 {
     float spawnRate = 0.08f;
@@ -837,6 +840,15 @@ void build(sets::Builder &b)
                     cube->effectDNA3D.helixTwist = dna3DData.helixTwist;
                     cube->effectDNA3D.radius = dna3DData.radius;
                     cube->setActiveEffect(CubeEffects::DNA_3D);
+                }
+            }
+
+            {
+                sets::Menu m(b, "Cross 3D (Test)");
+                b.Slider("cr3d.speed"_h, "Speed", 0.01f, 0.15f, 0.01f, "", &cross3DData.speed);
+                if (b.Button("Activate")) {
+                    cube->effectCross3D.speed = cross3DData.speed;
+                    cube->setActiveEffect(CubeEffects::CROSS_3D);
                 }
             }
         }
