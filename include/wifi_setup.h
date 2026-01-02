@@ -3,22 +3,18 @@
 
 #include <WiFi.h>
 
-#define WIFI_SSID ""
-#define WIFI_PASS ""
+#define AP_SSID "space1cube"
+#define AP_PASS "11223344"
 
 void setupWiFi() {
-    WiFi.mode(WIFI_STA);
-    WiFi.begin(WIFI_SSID, WIFI_PASS);
-    
-    uint8_t tries = 20;
-    while (WiFi.status() != WL_CONNECTED) {
-        delay(1500);
-        Serial.print(".");
-        if (!--tries) break;
-    }
+    WiFi.mode(WIFI_AP);
+    WiFi.softAP(AP_SSID, AP_PASS);
+
     Serial.println();
-    Serial.print("Connected: ");
-    Serial.println(WiFi.localIP());
+    Serial.print("AP Started: ");
+    Serial.println(AP_SSID);
+    Serial.print("IP: ");
+    Serial.println(WiFi.softAPIP());
 }
 
 #endif // WIFI_SETUP_H

@@ -8,29 +8,71 @@
 #define SETT_NO_DB
 #define SETT_NO_TABLE
 
-
 int analogPin = 35;
 float voltage = 0.0;
+
+// Рисует символ на одной грани
+void drawCharOnFace(Matrix& face, const std::string& character, uint32_t color) {
+    int colOffset = 1;
+    int rowOffset = 1;
+
+    auto it = charPatterns.find(character);
+    if (it == charPatterns.end()) {
+        return;
+    }
+
+    const Pattern& charPattern = it->second;
+    for (int r = 0; r < 7; r++) {
+        uint8_t rowPattern = charPattern[r];
+        for (int c = 0; c < 5; c++) {
+            if (rowPattern & (1 << (4 - c))) {
+                int x = c + colOffset;
+                int y = r + rowOffset;
+                face.setPixel(x, y, color);
+            }
+        }
+    }
+}
+
+// Отображает номера граней разными цветами
+void showFaceNumbers() {
+    cube->clear();
+
+    // Цвета для каждой грани
+    drawCharOnFace(cube->front,  "1", 0xFF0000);  // Красный
+    drawCharOnFace(cube->back,   "2", 0x00FF00);  // Зелёный
+    drawCharOnFace(cube->left,   "3", 0x0000FF);  // Синий
+    drawCharOnFace(cube->right,  "4", 0xFFFF00);  // Жёлтый
+    drawCharOnFace(cube->top,    "5", 0xFF00FF);  // Пурпурный
+    drawCharOnFace(cube->bottom, "6", 0x00FFFF);  // Голубой
+
+    cube->render();
+}
 
 void setup()
 {
   Serial.begin(115200);
   Serial.println();
-  
+
   logger.println("initMatrices");
   initCube();
 
-  cube->effectSymbol.print("@", 0x850000);
-  cube->setActiveEffect(CubeEffects::SYMBOL);
-  cube->tick();
+  // Показываем номера граней при старте
+  showFaceNumbers();
   delay(500);
 
   logger.println("setupWiFi");
   setupWiFi();
 
   delay(200);
-  cube->effectSymbol.print("@", 0x03ad00);
-  cube->tick();
+  // Меняем цвет цифр на зелёный после подключения WiFi
+  drawCharOnFace(cube->front,  "1", 0x03ad00);
+  drawCharOnFace(cube->back,   "2", 0x03ad00);
+  drawCharOnFace(cube->left,   "3", 0x03ad00);
+  drawCharOnFace(cube->right,  "4", 0x03ad00);
+  drawCharOnFace(cube->top,    "5", 0x03ad00);
+  drawCharOnFace(cube->bottom, "6", 0x03ad00);
+  cube->render();
   delay(500);
 
   logger.println("setupSettings");
