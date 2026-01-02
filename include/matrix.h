@@ -3,7 +3,6 @@
 
 #include "matrix_setup.h"
 #include "pixel.h"
-#include <Adafruit_NeoPixel.h>
 #include <string>
 #include <unordered_map>
 #include <vector>
@@ -13,17 +12,18 @@ extern const std::unordered_map<std::string, Pattern> charPatterns;
 
 class Matrix {
 public:
-    Matrix(Adafruit_NeoPixel &display, uint8_t width, uint8_t height, bool on);
+    Matrix(CRGB* leds, uint8_t matrixIndex, uint8_t width, uint8_t height, bool on);
 
     void setPixel(uint8_t x, uint8_t y, uint32_t color, uint8_t brightness = 255);
     void setPixel(uint8_t x, uint8_t y, uint32_t color, float brightness);
     void setPixel(const Pixel& p);
-    
+
     Pixel& getPixel(uint8_t x, uint8_t y);
 
     void render();
 
-    Adafruit_NeoPixel &display;
+    CRGB* leds;
+    uint8_t matrixIndex;
 
     void turnOn();
     void turnOff();

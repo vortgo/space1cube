@@ -8,21 +8,45 @@ alignas(Cube) uint8_t cubeBuffer[sizeof(Cube)];
 // Глобальный указатель на Cube
 Cube *cube = nullptr;
 std::vector<Matrix> matrices;
-Adafruit_NeoPixel displays[NUM_MATRICES] = {
-    Adafruit_NeoPixel(NUM_LEDS, PIN_1, NEO_GRB + NEO_KHZ800),
-    Adafruit_NeoPixel(NUM_LEDS, PIN_2, NEO_GRB + NEO_KHZ800),
-    Adafruit_NeoPixel(NUM_LEDS, PIN_3, NEO_GRB + NEO_KHZ800),
-    Adafruit_NeoPixel(NUM_LEDS, PIN_4, NEO_GRB + NEO_KHZ800),
-    Adafruit_NeoPixel(NUM_LEDS, PIN_5, NEO_GRB + NEO_KHZ800),
-    Adafruit_NeoPixel(NUM_LEDS, PIN_6, NEO_GRB + NEO_KHZ800)};
+
+// Определение массивов LED для FastLED
+CRGB leds1[NUM_LEDS];
+CRGB leds2[NUM_LEDS];
+CRGB leds3[NUM_LEDS];
+CRGB leds4[NUM_LEDS];
+CRGB leds5[NUM_LEDS];
+CRGB leds6[NUM_LEDS];
+
+// Указатели на массивы для удобного доступа
+CRGB* ledsArrays[NUM_MATRICES] = {leds1, leds2, leds3, leds4, leds5, leds6};
+
+// Флаги яркости для каждой матрицы
+uint8_t matrixBrightness[NUM_MATRICES] = {255, 255, 255, 255, 255, 255};
 
 void initCube()
 {
     std::srand(std::time(0));
 
+    // Инициализация FastLED для каждой матрицы
+    // FastLED использует RMT на ESP32, что решает проблему с WiFi прерываниями
+    FastLED.addLeds<WS2812B, PIN_1, GRB>(leds1, NUM_LEDS);
+    FastLED.addLeds<WS2812B, PIN_2, GRB>(leds2, NUM_LEDS);
+    FastLED.addLeds<WS2812B, PIN_3, GRB>(leds3, NUM_LEDS);
+    FastLED.addLeds<WS2812B, PIN_4, GRB>(leds4, NUM_LEDS);
+    FastLED.addLeds<WS2812B, PIN_5, GRB>(leds5, NUM_LEDS);
+    FastLED.addLeds<WS2812B, PIN_6, GRB>(leds6, NUM_LEDS);
+
+    // Глобальная яркость FastLED
+    FastLED.setBrightness(255);
+
+    // Очищаем все LED
+    FastLED.clear();
+    FastLED.show();
+
+    // Создаём матрицы с указателями на LED массивы
     for (int i = 0; i < NUM_MATRICES; ++i)
     {
-        matrices.push_back(Matrix(displays[i], WIDTH, HEIGHT, true));
+        matrices.push_back(Matrix(ledsArrays[i], i, WIDTH, HEIGHT, true));
     }
 
     // Конструируем Cube в заранее выделенном буфере с помощью placement new
@@ -60,6 +84,10 @@ void Cube::render()
     right.render();
     top.render();
     bottom.render();
+
+    // Один вызов FastLED.show() для всех матриц сразу
+    // FastLED использует RMT, что обеспечивает стабильную работу с WiFi
+    FastLED.show();
 }
 
 Matrix &Cube::getMatrix(CubeFace face)

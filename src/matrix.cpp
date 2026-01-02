@@ -8,12 +8,14 @@
 
 using Pattern = std::array<uint8_t, 7>;
 
-Matrix::Matrix(Adafruit_NeoPixel &display, uint8_t width, uint8_t height, bool on)
-    : display(display), width(width), height(height), on(on)
+Matrix::Matrix(CRGB* leds, uint8_t matrixIndex, uint8_t width, uint8_t height, bool on)
+    : leds(leds), matrixIndex(matrixIndex), width(width), height(height), on(on)
 {
-    display.begin();
-    display.clear();
-    
+    // Очищаем LED массив
+    for (uint16_t i = 0; i < NUM_LEDS; i++) {
+        leds[i] = CRGB::Black;
+    }
+
     pixels.reserve(width * height);
     for (uint8_t y = 0; y < height; ++y) {
         for (uint8_t x = 0; x < width; ++x) {
@@ -67,8 +69,12 @@ void Matrix::clear(){
 
 void Matrix::render() {
     if (!on) {
+        // Если матрица выключена, заполняем чёрным
+        for (uint16_t i = 0; i < NUM_LEDS; i++) {
+            leds[i] = CRGB::Black;
+        }
         return;
-    } 
+    }
 
     // Пробегаем по всем пикселям и передаем их состояние на физический дисплей
     for (uint8_t y = 0; y < height; ++y) {
@@ -77,17 +83,17 @@ void Matrix::render() {
             uint8_t r = (pixels[index].getColor() >> 16) & 0xFF;
             uint8_t g = (pixels[index].getColor() >> 8) & 0xFF;
             uint8_t b = pixels[index].getColor() & 0xFF;
-                     
+
             // Пропорциональное уменьшение яркости
             float brightnessFactor = pixels[index].getBrightness() / 255.0f * maxBrightness;
-            r = (r * brightnessFactor);
-            g = (g * brightnessFactor);
-            b = (b * brightnessFactor);
+            r = static_cast<uint8_t>(r * brightnessFactor);
+            g = static_cast<uint8_t>(g * brightnessFactor);
+            b = static_cast<uint8_t>(b * brightnessFactor);
 
-            display.setPixelColor(index, display.gamma32(display.Color(r, g, b)));
+            leds[index] = CRGB(r, g, b);
         }
     }
-    display.show();
+    // FastLED.show() вызывается централизованно в Cube::render()
 }
 
 Pixel& Matrix::getPixel(uint8_t x, uint8_t y) {
@@ -97,14 +103,14 @@ Pixel& Matrix::getPixel(uint8_t x, uint8_t y) {
 
 void Matrix::turnOn(){
     on = true;
-    display.setBrightness(255);
-    display.show();
 }
 
 void Matrix::turnOff(){
     on = false;
-    display.setBrightness(0);
-    display.show();
+    // Очищаем LED при выключении
+    for (uint16_t i = 0; i < NUM_LEDS; i++) {
+        leds[i] = CRGB::Black;
+    }
 }
 
 uint16_t Matrix::getIndex(uint8_t x, uint8_t y)
