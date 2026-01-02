@@ -38,6 +38,21 @@ enum class CubeEffects
     PLASMA,
     MATRIX_RAIN,
     GAME_OF_LIFE,
+    FIREWORKS,
+    STARFIELD,
+    LIGHTNING,
+    BOUNCING_BALLS,
+    RIPPLE_POND,
+    FIREFLIES,
+    HEARTBEAT_PULSE,
+    COMET_TRAIL,
+    SPARKLE,
+    CORNER_PULSE,
+    SCAN_LINE,
+    PIXEL_SORT,
+    GROWING_SQUARES,
+    RANDOM_WALK,
+    TETRIS_FALL,
 };
 
 enum class Color : uint32_t
@@ -222,6 +237,10 @@ public:
     void render(Cube& cube, unsigned long deltaTime) override;
 
     unsigned long moveInterval = 200;  // Скорость змейки (мс)
+    bool autoMode = true;              // Автоматический режим
+
+    void turnLeft();                   // Поворот влево
+    void turnRight();                  // Поворот вправо
 
 private:
     struct Segment {
@@ -622,6 +641,364 @@ private:
     uint32_t getRandomColor();
 };
 
+// ============ FIREWORKS EFFECT ============
+class EffectFireworks : public Effect {
+public:
+    EffectFireworks();
+    void render(Cube& cube, unsigned long deltaTime) override;
+
+    float launchRate = 0.02f;      // Частота запуска ракет
+    float gravity = 0.05f;          // Гравитация
+    int sparkCount = 12;            // Количество искр при взрыве
+
+private:
+    static const int GRID_W = 8;
+    static const int GRID_H = 8;
+    static const int MAX_SPARKS = 50;
+
+    struct Spark {
+        float x, y;
+        float vx, vy;
+        uint32_t color;
+        float life;
+        bool active;
+    };
+
+    struct Rocket {
+        float x, y;
+        float vy;
+        uint32_t color;
+        bool active;
+        bool exploded;
+    };
+
+    Spark sparks[MAX_SPARKS];
+    Rocket rocket;
+    float brightness[GRID_W][GRID_H];
+    uint32_t colors[GRID_W][GRID_H];
+
+    void launchRocket();
+    void explode();
+    uint32_t getRandomColor();
+};
+
+// ============ STARFIELD EFFECT ============
+class EffectStarfield : public Effect {
+public:
+    EffectStarfield();
+    void render(Cube& cube, unsigned long deltaTime) override;
+
+    float speed = 0.1f;             // Скорость звёзд
+    int starCount = 15;             // Количество звёзд
+
+private:
+    static const int GRID_W = 8;
+    static const int GRID_H = 8;
+    static const int MAX_STARS = 20;
+
+    struct Star {
+        float x, y, z;
+        bool active;
+    };
+
+    Star stars[MAX_STARS];
+    void spawnStar(int idx);
+};
+
+// ============ LIGHTNING EFFECT ============
+class EffectLightning : public Effect {
+public:
+    EffectLightning();
+    void render(Cube& cube, unsigned long deltaTime) override;
+
+    float strikeChance = 0.01f;     // Вероятность молнии
+    float fadeSpeed = 0.15f;        // Скорость затухания
+
+private:
+    static const int GRID_W = 8;
+    static const int GRID_H = 8;
+
+    float brightness[GRID_W][GRID_H];
+    bool striking;
+    int strikeX;
+    int strikeProgress;
+
+    void generateBolt(int startX);
+};
+
+// ============ BOUNCING BALLS EFFECT ============
+class EffectBouncingBalls : public Effect {
+public:
+    EffectBouncingBalls();
+    void render(Cube& cube, unsigned long deltaTime) override;
+
+    int ballCount = 3;              // Количество шариков
+    float speed = 0.15f;            // Скорость
+
+private:
+    static const int GRID_W = 8;
+    static const int GRID_H = 8;
+    static const int MAX_BALLS = 5;
+
+    struct Ball {
+        float x, y;
+        float vx, vy;
+        uint32_t color;
+    };
+
+    Ball balls[MAX_BALLS];
+    void initBalls();
+};
+
+// ============ RIPPLE POND EFFECT ============
+class EffectRipplePond : public Effect {
+public:
+    EffectRipplePond();
+    void render(Cube& cube, unsigned long deltaTime) override;
+
+    float dropRate = 0.02f;         // Частота капель
+    float waveSpeed = 0.3f;         // Скорость волн
+
+private:
+    static const int GRID_W = 8;
+    static const int GRID_H = 8;
+    static const int MAX_RIPPLES = 3;
+
+    struct Ripple {
+        float x, y;
+        float radius;
+        float life;
+        bool active;
+    };
+
+    Ripple ripples[MAX_RIPPLES];
+    void spawnRipple();
+};
+
+// ============ FIREFLIES EFFECT ============
+class EffectFireflies : public Effect {
+public:
+    EffectFireflies();
+    void render(Cube& cube, unsigned long deltaTime) override;
+
+    int fireflyCount = 8;           // Количество светлячков
+    float blinkSpeed = 0.03f;       // Скорость мигания
+
+private:
+    static const int GRID_W = 8;
+    static const int GRID_H = 8;
+    static const int MAX_FIREFLIES = 12;
+
+    struct Firefly {
+        int x, y;
+        float phase;
+        float speed;
+        float brightness;
+    };
+
+    Firefly fireflies[MAX_FIREFLIES];
+};
+
+// ============ HEARTBEAT PULSE EFFECT ============
+class EffectHeartbeatPulse : public Effect {
+public:
+    EffectHeartbeatPulse();
+    void render(Cube& cube, unsigned long deltaTime) override;
+
+    float bpm = 60.0f;              // Удары в минуту
+    uint32_t pulseColor = 0xFF0000; // Цвет пульса
+
+private:
+    static const int GRID_W = 8;
+    static const int GRID_H = 8;
+
+    float time;
+    float currentRadius;
+};
+
+// ============ COMET TRAIL EFFECT ============
+class EffectCometTrail : public Effect {
+public:
+    EffectCometTrail();
+    void render(Cube& cube, unsigned long deltaTime) override;
+
+    float speed = 0.2f;             // Скорость кометы
+    int trailLength = 5;            // Длина хвоста
+
+private:
+    static const int GRID_W = 8;
+    static const int GRID_H = 8;
+
+    float x, y;
+    float vx, vy;
+    uint32_t color;
+    float brightness[GRID_W][GRID_H];
+
+    void changeDirection();
+    uint32_t getRandomColor();
+};
+
+// ============ SPARKLE EFFECT ============
+class EffectSparkle : public Effect {
+public:
+    EffectSparkle();
+    void render(Cube& cube, unsigned long deltaTime) override;
+
+    float sparkleRate = 0.15f;      // Частота искр
+    float fadeSpeed = 0.2f;         // Скорость затухания
+
+private:
+    static const int GRID_W = 8;
+    static const int GRID_H = 8;
+
+    float brightness[GRID_W][GRID_H];
+    uint32_t colors[GRID_W][GRID_H];
+};
+
+// ============ CORNER PULSE EFFECT ============
+class EffectCornerPulse : public Effect {
+public:
+    EffectCornerPulse();
+    void render(Cube& cube, unsigned long deltaTime) override;
+
+    float pulseSpeed = 0.1f;        // Скорость пульса
+    float interval = 2000.0f;       // Интервал между пульсами (мс)
+
+private:
+    static const int GRID_W = 8;
+    static const int GRID_H = 8;
+
+    int currentCorner;
+    float pulseRadius;
+    float timeSincePulse;
+    uint32_t pulseColor;
+
+    uint32_t getRandomColor();
+};
+
+// ============ SCAN LINE EFFECT ============
+class EffectScanLine : public Effect {
+public:
+    EffectScanLine();
+    void render(Cube& cube, unsigned long deltaTime) override;
+
+    float speed = 0.15f;            // Скорость сканирования
+    bool vertical = false;          // Вертикальное направление
+
+private:
+    static const int GRID_W = 8;
+    static const int GRID_H = 8;
+
+    float position;
+    int direction;
+    uint32_t lineColor;
+    float brightness[GRID_W][GRID_H];
+
+    uint32_t getRandomColor();
+};
+
+// ============ PIXEL SORT EFFECT ============
+class EffectPixelSort : public Effect {
+public:
+    EffectPixelSort();
+    void render(Cube& cube, unsigned long deltaTime) override;
+
+    float sortSpeed = 0.05f;        // Скорость сортировки
+    float shuffleTime = 3000.0f;    // Время до перемешивания
+
+private:
+    static const int GRID_W = 8;
+    static const int GRID_H = 8;
+
+    uint32_t pixels[GRID_W * GRID_H];
+    float timeSinceShuffle;
+    bool sorting;
+    int sortStep;
+
+    void shuffle();
+    void sortOneStep();
+    uint32_t hueToColor(int hue);
+};
+
+// ============ GROWING SQUARES EFFECT ============
+class EffectGrowingSquares : public Effect {
+public:
+    EffectGrowingSquares();
+    void render(Cube& cube, unsigned long deltaTime) override;
+
+    float growSpeed = 0.08f;        // Скорость роста
+    float interval = 1500.0f;       // Интервал между квадратами
+
+private:
+    static const int GRID_W = 8;
+    static const int GRID_H = 8;
+
+    float currentSize;
+    uint32_t currentColor;
+    uint32_t previousColor;
+
+    uint32_t getRandomColor();
+};
+
+// ============ RANDOM WALK EFFECT ============
+class EffectRandomWalk : public Effect {
+public:
+    EffectRandomWalk();
+    void render(Cube& cube, unsigned long deltaTime) override;
+
+    int walkerCount = 3;            // Количество точек
+    float speed = 0.1f;             // Скорость движения
+    float fadeSpeed = 0.05f;        // Скорость затухания
+
+private:
+    static const int GRID_W = 8;
+    static const int GRID_H = 8;
+    static const int MAX_WALKERS = 5;
+
+    struct Walker {
+        int x, y;
+        uint32_t color;
+        float moveTimer;
+    };
+
+    Walker walkers[MAX_WALKERS];
+    float brightness[GRID_W][GRID_H];
+    uint32_t colors[GRID_W][GRID_H];
+};
+
+// ============ TETRIS FALL EFFECT ============
+class EffectTetrisFall : public Effect {
+public:
+    EffectTetrisFall();
+    void render(Cube& cube, unsigned long deltaTime) override;
+
+    float fallSpeed = 0.1f;         // Скорость падения
+    float clearDelay = 500.0f;      // Задержка перед очисткой линии
+
+private:
+    static const int GRID_W = 8;
+    static const int GRID_H = 8;
+
+    struct Piece {
+        int x, y;
+        int type;
+        uint32_t color;
+        bool active;
+    };
+
+    uint32_t grid[GRID_W][GRID_H];
+    Piece currentPiece;
+    float fallTimer;
+    float clearTimer;
+    int lineToClear;
+
+    void spawnPiece();
+    void lockPiece();
+    bool checkCollision(int nx, int ny);
+    void checkLines();
+    uint32_t getRandomColor();
+};
+
 /**
  * @brief Класс Cube объединяет 6 матриц – по одной для каждой грани куба.
  *
@@ -655,6 +1032,21 @@ public:
     EffectPlasma effectPlasma = EffectPlasma();
     EffectMatrixRain effectMatrixRain = EffectMatrixRain();
     EffectGameOfLife effectGameOfLife = EffectGameOfLife();
+    EffectFireworks effectFireworks = EffectFireworks();
+    EffectStarfield effectStarfield = EffectStarfield();
+    EffectLightning effectLightning = EffectLightning();
+    EffectBouncingBalls effectBouncingBalls = EffectBouncingBalls();
+    EffectRipplePond effectRipplePond = EffectRipplePond();
+    EffectFireflies effectFireflies = EffectFireflies();
+    EffectHeartbeatPulse effectHeartbeatPulse = EffectHeartbeatPulse();
+    EffectCometTrail effectCometTrail = EffectCometTrail();
+    EffectSparkle effectSparkle = EffectSparkle();
+    EffectCornerPulse effectCornerPulse = EffectCornerPulse();
+    EffectScanLine effectScanLine = EffectScanLine();
+    EffectPixelSort effectPixelSort = EffectPixelSort();
+    EffectGrowingSquares effectGrowingSquares = EffectGrowingSquares();
+    EffectRandomWalk effectRandomWalk = EffectRandomWalk();
+    EffectTetrisFall effectTetrisFall = EffectTetrisFall();
 
     float voltage = 0.0f;
 
@@ -772,6 +1164,66 @@ public:
             activeEffect = &effectGameOfLife;
             Serial.println("activeEffect GAME_OF_LIFE");
             break;
+        case CubeEffects::FIREWORKS:
+            activeEffect = &effectFireworks;
+            Serial.println("activeEffect FIREWORKS");
+            break;
+        case CubeEffects::STARFIELD:
+            activeEffect = &effectStarfield;
+            Serial.println("activeEffect STARFIELD");
+            break;
+        case CubeEffects::LIGHTNING:
+            activeEffect = &effectLightning;
+            Serial.println("activeEffect LIGHTNING");
+            break;
+        case CubeEffects::BOUNCING_BALLS:
+            activeEffect = &effectBouncingBalls;
+            Serial.println("activeEffect BOUNCING_BALLS");
+            break;
+        case CubeEffects::RIPPLE_POND:
+            activeEffect = &effectRipplePond;
+            Serial.println("activeEffect RIPPLE_POND");
+            break;
+        case CubeEffects::FIREFLIES:
+            activeEffect = &effectFireflies;
+            Serial.println("activeEffect FIREFLIES");
+            break;
+        case CubeEffects::HEARTBEAT_PULSE:
+            activeEffect = &effectHeartbeatPulse;
+            Serial.println("activeEffect HEARTBEAT_PULSE");
+            break;
+        case CubeEffects::COMET_TRAIL:
+            activeEffect = &effectCometTrail;
+            Serial.println("activeEffect COMET_TRAIL");
+            break;
+        case CubeEffects::SPARKLE:
+            activeEffect = &effectSparkle;
+            Serial.println("activeEffect SPARKLE");
+            break;
+        case CubeEffects::CORNER_PULSE:
+            activeEffect = &effectCornerPulse;
+            Serial.println("activeEffect CORNER_PULSE");
+            break;
+        case CubeEffects::SCAN_LINE:
+            activeEffect = &effectScanLine;
+            Serial.println("activeEffect SCAN_LINE");
+            break;
+        case CubeEffects::PIXEL_SORT:
+            activeEffect = &effectPixelSort;
+            Serial.println("activeEffect PIXEL_SORT");
+            break;
+        case CubeEffects::GROWING_SQUARES:
+            activeEffect = &effectGrowingSquares;
+            Serial.println("activeEffect GROWING_SQUARES");
+            break;
+        case CubeEffects::RANDOM_WALK:
+            activeEffect = &effectRandomWalk;
+            Serial.println("activeEffect RANDOM_WALK");
+            break;
+        case CubeEffects::TETRIS_FALL:
+            activeEffect = &effectTetrisFall;
+            Serial.println("activeEffect TETRIS_FALL");
+            break;
         default:
             break;
         }
@@ -834,7 +1286,7 @@ public:
 
     std::vector<std::reference_wrapper<Effect>> getEffectsForRotate()
     {
-        return {breathingHeart, fallingStar, soundLevel, effectSpiral, fadePixels, effectDice, effectRomb, effectAurora, effectLavaLamp, effectGravity, effectParticles, effectSnake, effectDynamicGroups, effectCyberGhost, effectSpiritWind, effectVortex, effectRaindropRipples, effectPlasma, effectMatrixRain, effectGameOfLife};
+        return {breathingHeart, fallingStar, soundLevel, effectSpiral, fadePixels, effectDice, effectRomb, effectAurora, effectLavaLamp, effectGravity, effectParticles, effectSnake, effectDynamicGroups, effectCyberGhost, effectSpiritWind, effectVortex, effectRaindropRipples, effectPlasma, effectMatrixRain, effectGameOfLife, effectFireworks, effectStarfield, effectLightning, effectBouncingBalls, effectRipplePond, effectFireflies, effectHeartbeatPulse, effectCometTrail, effectSparkle, effectCornerPulse, effectScanLine, effectPixelSort, effectGrowingSquares, effectRandomWalk, effectTetrisFall};
     }
 
 private:

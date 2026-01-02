@@ -111,8 +111,54 @@ GravityData gravityData;
 struct SnakeData
 {
     unsigned long moveInterval = 200;
+    bool autoMode = true;
 };
 SnakeData snakeData;
+
+struct FireworksData { float launchRate = 0.02f; float gravity = 0.05f; int sparkCount = 12; };
+FireworksData fireworksData;
+
+struct StarfieldData { float speed = 0.1f; int starCount = 15; };
+StarfieldData starfieldData;
+
+struct LightningData { float strikeChance = 0.01f; float fadeSpeed = 0.15f; };
+LightningData lightningData;
+
+struct BouncingBallsData { int ballCount = 3; float speed = 0.15f; };
+BouncingBallsData bouncingBallsData;
+
+struct RipplePondData { float dropRate = 0.02f; float waveSpeed = 0.3f; };
+RipplePondData ripplePondData;
+
+struct FirefliesData { int fireflyCount = 8; float blinkSpeed = 0.03f; };
+FirefliesData firefliesData;
+
+struct HeartbeatPulseData { float bpm = 60.0f; };
+HeartbeatPulseData heartbeatPulseData;
+
+struct CometTrailData { float speed = 0.2f; int trailLength = 5; };
+CometTrailData cometTrailData;
+
+struct SparkleData { float sparkleRate = 0.15f; float fadeSpeed = 0.2f; };
+SparkleData sparkleData;
+
+struct CornerPulseData { float pulseSpeed = 0.1f; float interval = 2000.0f; };
+CornerPulseData cornerPulseData;
+
+struct ScanLineData { float speed = 0.15f; bool vertical = false; };
+ScanLineData scanLineData;
+
+struct PixelSortData { float sortSpeed = 0.05f; float shuffleTime = 3000.0f; };
+PixelSortData pixelSortData;
+
+struct GrowingSquaresData { float growSpeed = 0.08f; };
+GrowingSquaresData growingSquaresData;
+
+struct RandomWalkData { int walkerCount = 3; float speed = 0.1f; float fadeSpeed = 0.05f; };
+RandomWalkData randomWalkData;
+
+struct TetrisFallData { float fallSpeed = 0.1f; };
+TetrisFallData tetrisFallData;
 
 struct VortexData
 {
@@ -343,10 +389,22 @@ void build(sets::Builder &b)
             {
                 sets::Menu m(b, "Snake");
                 b.Slider("snakeData.speed"_h, "Speed (ms)", 50, 500, 10, "", &snakeData.moveInterval);
+                if (b.Switch("snakeData.auto"_h, "Auto Mode", &snakeData.autoMode)) {
+                    cube->effectSnake.autoMode = snakeData.autoMode;
+                }
+                if (!snakeData.autoMode) {
+                    if (b.Button("Turn Left")) {
+                        cube->effectSnake.turnLeft();
+                    }
+                    if (b.Button("Turn Right")) {
+                        cube->effectSnake.turnRight();
+                    }
+                }
                 if (b.Button("Activate"))
                 {
                     Serial.println("set active SNAKE");
                     cube->effectSnake.moveInterval = snakeData.moveInterval;
+                    cube->effectSnake.autoMode = snakeData.autoMode;
                     cube->setActiveEffect(CubeEffects::SNAKE);
                 }
             }
@@ -452,6 +510,171 @@ void build(sets::Builder &b)
                     cube->effectGameOfLife.randomizeThreshold = gameOfLifeData.randomizeThreshold;
                     cube->effectGameOfLife.initialDensity = gameOfLifeData.initialDensity;
                     cube->setActiveEffect(CubeEffects::GAME_OF_LIFE);
+                }
+            }
+
+            {
+                sets::Menu m(b, "Fireworks");
+                b.Slider("fw.rate"_h, "Launch Rate", 0.01f, 0.1f, 0.01f, "", &fireworksData.launchRate);
+                b.Slider("fw.gravity"_h, "Gravity", 0.02f, 0.1f, 0.01f, "", &fireworksData.gravity);
+                b.Slider("fw.sparks"_h, "Spark Count", 6, 20, 2, "", &fireworksData.sparkCount);
+                if (b.Button("Activate")) {
+                    cube->effectFireworks.launchRate = fireworksData.launchRate;
+                    cube->effectFireworks.gravity = fireworksData.gravity;
+                    cube->effectFireworks.sparkCount = fireworksData.sparkCount;
+                    cube->setActiveEffect(CubeEffects::FIREWORKS);
+                }
+            }
+
+            {
+                sets::Menu m(b, "Starfield");
+                b.Slider("sf.speed"_h, "Speed", 0.05f, 0.3f, 0.02f, "", &starfieldData.speed);
+                b.Slider("sf.count"_h, "Star Count", 5, 20, 1, "", &starfieldData.starCount);
+                if (b.Button("Activate")) {
+                    cube->effectStarfield.speed = starfieldData.speed;
+                    cube->effectStarfield.starCount = starfieldData.starCount;
+                    cube->setActiveEffect(CubeEffects::STARFIELD);
+                }
+            }
+
+            {
+                sets::Menu m(b, "Lightning");
+                b.Slider("lg.chance"_h, "Strike Chance", 0.005f, 0.05f, 0.005f, "", &lightningData.strikeChance);
+                b.Slider("lg.fade"_h, "Fade Speed", 0.05f, 0.3f, 0.02f, "", &lightningData.fadeSpeed);
+                if (b.Button("Activate")) {
+                    cube->effectLightning.strikeChance = lightningData.strikeChance;
+                    cube->effectLightning.fadeSpeed = lightningData.fadeSpeed;
+                    cube->setActiveEffect(CubeEffects::LIGHTNING);
+                }
+            }
+
+            {
+                sets::Menu m(b, "Bouncing Balls");
+                b.Slider("bb.count"_h, "Ball Count", 1, 5, 1, "", &bouncingBallsData.ballCount);
+                b.Slider("bb.speed"_h, "Speed", 0.05f, 0.3f, 0.02f, "", &bouncingBallsData.speed);
+                if (b.Button("Activate")) {
+                    cube->effectBouncingBalls.ballCount = bouncingBallsData.ballCount;
+                    cube->effectBouncingBalls.speed = bouncingBallsData.speed;
+                    cube->setActiveEffect(CubeEffects::BOUNCING_BALLS);
+                }
+            }
+
+            {
+                sets::Menu m(b, "Ripple Pond");
+                b.Slider("rp.rate"_h, "Drop Rate", 0.01f, 0.1f, 0.01f, "", &ripplePondData.dropRate);
+                b.Slider("rp.wave"_h, "Wave Speed", 0.1f, 0.5f, 0.05f, "", &ripplePondData.waveSpeed);
+                if (b.Button("Activate")) {
+                    cube->effectRipplePond.dropRate = ripplePondData.dropRate;
+                    cube->effectRipplePond.waveSpeed = ripplePondData.waveSpeed;
+                    cube->setActiveEffect(CubeEffects::RIPPLE_POND);
+                }
+            }
+
+            {
+                sets::Menu m(b, "Fireflies");
+                b.Slider("ff.count"_h, "Firefly Count", 3, 12, 1, "", &firefliesData.fireflyCount);
+                b.Slider("ff.blink"_h, "Blink Speed", 0.01f, 0.1f, 0.01f, "", &firefliesData.blinkSpeed);
+                if (b.Button("Activate")) {
+                    cube->effectFireflies.fireflyCount = firefliesData.fireflyCount;
+                    cube->effectFireflies.blinkSpeed = firefliesData.blinkSpeed;
+                    cube->setActiveEffect(CubeEffects::FIREFLIES);
+                }
+            }
+
+            {
+                sets::Menu m(b, "Heartbeat Pulse");
+                b.Slider("hb.bpm"_h, "BPM", 40.0f, 120.0f, 5.0f, "", &heartbeatPulseData.bpm);
+                if (b.Button("Activate")) {
+                    cube->effectHeartbeatPulse.bpm = heartbeatPulseData.bpm;
+                    cube->setActiveEffect(CubeEffects::HEARTBEAT_PULSE);
+                }
+            }
+
+            {
+                sets::Menu m(b, "Comet Trail");
+                b.Slider("ct.speed"_h, "Speed", 0.1f, 0.4f, 0.02f, "", &cometTrailData.speed);
+                b.Slider("ct.trail"_h, "Trail Length", 3, 8, 1, "", &cometTrailData.trailLength);
+                if (b.Button("Activate")) {
+                    cube->effectCometTrail.speed = cometTrailData.speed;
+                    cube->effectCometTrail.trailLength = cometTrailData.trailLength;
+                    cube->setActiveEffect(CubeEffects::COMET_TRAIL);
+                }
+            }
+
+            {
+                sets::Menu m(b, "Sparkle");
+                b.Slider("sp.rate"_h, "Sparkle Rate", 0.05f, 0.3f, 0.02f, "", &sparkleData.sparkleRate);
+                b.Slider("sp.fade"_h, "Fade Speed", 0.1f, 0.4f, 0.02f, "", &sparkleData.fadeSpeed);
+                if (b.Button("Activate")) {
+                    cube->effectSparkle.sparkleRate = sparkleData.sparkleRate;
+                    cube->effectSparkle.fadeSpeed = sparkleData.fadeSpeed;
+                    cube->setActiveEffect(CubeEffects::SPARKLE);
+                }
+            }
+
+            {
+                sets::Menu m(b, "Corner Pulse");
+                b.Slider("cp.speed"_h, "Pulse Speed", 0.05f, 0.2f, 0.02f, "", &cornerPulseData.pulseSpeed);
+                b.Slider("cp.interval"_h, "Interval (ms)", 1000.0f, 4000.0f, 200.0f, "", &cornerPulseData.interval);
+                if (b.Button("Activate")) {
+                    cube->effectCornerPulse.pulseSpeed = cornerPulseData.pulseSpeed;
+                    cube->effectCornerPulse.interval = cornerPulseData.interval;
+                    cube->setActiveEffect(CubeEffects::CORNER_PULSE);
+                }
+            }
+
+            {
+                sets::Menu m(b, "Scan Line");
+                b.Slider("sl.speed"_h, "Speed", 0.05f, 0.3f, 0.02f, "", &scanLineData.speed);
+                if (b.Switch("sl.vert"_h, "Vertical", &scanLineData.vertical)) {
+                    cube->effectScanLine.vertical = scanLineData.vertical;
+                }
+                if (b.Button("Activate")) {
+                    cube->effectScanLine.speed = scanLineData.speed;
+                    cube->effectScanLine.vertical = scanLineData.vertical;
+                    cube->setActiveEffect(CubeEffects::SCAN_LINE);
+                }
+            }
+
+            {
+                sets::Menu m(b, "Pixel Sort");
+                b.Slider("ps.speed"_h, "Sort Speed", 0.02f, 0.15f, 0.01f, "", &pixelSortData.sortSpeed);
+                b.Slider("ps.shuffle"_h, "Shuffle Time (ms)", 2000.0f, 6000.0f, 500.0f, "", &pixelSortData.shuffleTime);
+                if (b.Button("Activate")) {
+                    cube->effectPixelSort.sortSpeed = pixelSortData.sortSpeed;
+                    cube->effectPixelSort.shuffleTime = pixelSortData.shuffleTime;
+                    cube->setActiveEffect(CubeEffects::PIXEL_SORT);
+                }
+            }
+
+            {
+                sets::Menu m(b, "Growing Squares");
+                b.Slider("gs.speed"_h, "Grow Speed", 0.03f, 0.15f, 0.01f, "", &growingSquaresData.growSpeed);
+                if (b.Button("Activate")) {
+                    cube->effectGrowingSquares.growSpeed = growingSquaresData.growSpeed;
+                    cube->setActiveEffect(CubeEffects::GROWING_SQUARES);
+                }
+            }
+
+            {
+                sets::Menu m(b, "Random Walk");
+                b.Slider("rw.count"_h, "Walker Count", 1, 5, 1, "", &randomWalkData.walkerCount);
+                b.Slider("rw.speed"_h, "Speed", 0.05f, 0.2f, 0.02f, "", &randomWalkData.speed);
+                b.Slider("rw.fade"_h, "Fade Speed", 0.02f, 0.15f, 0.01f, "", &randomWalkData.fadeSpeed);
+                if (b.Button("Activate")) {
+                    cube->effectRandomWalk.walkerCount = randomWalkData.walkerCount;
+                    cube->effectRandomWalk.speed = randomWalkData.speed;
+                    cube->effectRandomWalk.fadeSpeed = randomWalkData.fadeSpeed;
+                    cube->setActiveEffect(CubeEffects::RANDOM_WALK);
+                }
+            }
+
+            {
+                sets::Menu m(b, "Tetris Fall");
+                b.Slider("tf.speed"_h, "Fall Speed", 0.05f, 0.3f, 0.02f, "", &tetrisFallData.fallSpeed);
+                if (b.Button("Activate")) {
+                    cube->effectTetrisFall.fallSpeed = tetrisFallData.fallSpeed;
+                    cube->setActiveEffect(CubeEffects::TETRIS_FALL);
                 }
             }
         }

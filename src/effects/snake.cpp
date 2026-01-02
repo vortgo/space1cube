@@ -92,8 +92,27 @@ void EffectSnake::updateDirection() {
     directionY = bestChoice->dy;
 }
 
+void EffectSnake::turnLeft() {
+    // Поворот влево относительно текущего направления
+    int newDirX = directionY;
+    int newDirY = -directionX;
+    directionX = newDirX;
+    directionY = newDirY;
+}
+
+void EffectSnake::turnRight() {
+    // Поворот вправо относительно текущего направления
+    int newDirX = -directionY;
+    int newDirY = directionX;
+    directionX = newDirX;
+    directionY = newDirY;
+}
+
 void EffectSnake::move() {
-    updateDirection();
+    // В автоматическом режиме - ИИ управляет
+    if (autoMode) {
+        updateDirection();
+    }
     int newX = snake.front().x + directionX;
     int newY = snake.front().y + directionY;
 
