@@ -2,11 +2,11 @@
 #include <cstdlib>
 
 EffectRandomWalk::EffectRandomWalk() {
-    uint32_t colors[] = {0xFF0000, 0x00FF00, 0x0000FF, 0xFFFF00, 0xFF00FF};
+    uint32_t colorPalette[] = {0xFF0000, 0x00FF00, 0x0000FF, 0xFFFF00, 0xFF00FF};
     for (int i = 0; i < MAX_WALKERS; i++) {
         walkers[i].x = random(GRID_W);
         walkers[i].y = random(GRID_H);
-        walkers[i].color = colors[i % 5];
+        walkers[i].color = colorPalette[i % 5];
         walkers[i].moveTimer = 0;
     }
     for (int x = 0; x < GRID_W; x++) {
