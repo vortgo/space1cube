@@ -142,6 +142,38 @@ struct RotateData
 };
 RotateData rotateData;
 
+struct FireData
+{
+    int cooling = 55;
+    int sparking = 120;
+    int hueShift = 0;
+};
+FireData fireData;
+
+struct PlasmaData
+{
+    float speed = 0.05f;
+    float scale = 4.0f;
+    int colorShift = 0;
+};
+PlasmaData plasmaData;
+
+struct MatrixRainData
+{
+    float dropSpeed = 0.15f;
+    int trailLength = 4;
+    float spawnChance = 0.3f;
+};
+MatrixRainData matrixRainData;
+
+struct GameOfLifeData
+{
+    float updateInterval = 200.0f;
+    float randomizeThreshold = 5000.0f;
+    int initialDensity = 35;
+};
+GameOfLifeData gameOfLifeData;
+
 bool cfm_f, notice_f, alert_f;
 bool onTop = true, onBottom = true, onFront = true, onBack = true, onLeft = true, onRight = true;
 
@@ -383,6 +415,66 @@ void build(sets::Builder &b)
                     Serial.println("set active RAINDROP");
                     cube->effectRaindropRipples.dropInterval = raindropData.dropInterval;
                     cube->setActiveEffect(CubeEffects::RAINDROP);
+                }
+            }
+
+            {
+                sets::Menu m(b, "Fire");
+                b.Slider("fire.cooling"_h, "Cooling", 30, 80, 5, "", &fireData.cooling);
+                b.Slider("fire.sparking"_h, "Sparking", 50, 200, 10, "", &fireData.sparking);
+                b.Slider("fire.hue"_h, "Color Shift", 0, 255, 5, "", &fireData.hueShift);
+                if (b.Button("Activate"))
+                {
+                    Serial.println("set active FIRE");
+                    cube->effectFire.cooling = fireData.cooling;
+                    cube->effectFire.sparking = fireData.sparking;
+                    cube->effectFire.hueShift = fireData.hueShift;
+                    cube->setActiveEffect(CubeEffects::FIRE);
+                }
+            }
+
+            {
+                sets::Menu m(b, "Plasma");
+                b.Slider("plasma.speed"_h, "Speed", 0.01f, 0.15f, 0.01f, "", &plasmaData.speed);
+                b.Slider("plasma.scale"_h, "Scale", 2.0f, 8.0f, 0.5f, "", &plasmaData.scale);
+                b.Slider("plasma.color"_h, "Color Shift", 0, 255, 5, "", &plasmaData.colorShift);
+                if (b.Button("Activate"))
+                {
+                    Serial.println("set active PLASMA");
+                    cube->effectPlasma.speed = plasmaData.speed;
+                    cube->effectPlasma.scale = plasmaData.scale;
+                    cube->effectPlasma.colorShift = plasmaData.colorShift;
+                    cube->setActiveEffect(CubeEffects::PLASMA);
+                }
+            }
+
+            {
+                sets::Menu m(b, "Matrix Rain");
+                b.Slider("matrix.speed"_h, "Drop Speed", 0.05f, 0.3f, 0.02f, "", &matrixRainData.dropSpeed);
+                b.Slider("matrix.trail"_h, "Trail Length", 2, 6, 1, "", &matrixRainData.trailLength);
+                b.Slider("matrix.spawn"_h, "Spawn Chance", 0.1f, 0.5f, 0.05f, "", &matrixRainData.spawnChance);
+                if (b.Button("Activate"))
+                {
+                    Serial.println("set active MATRIX_RAIN");
+                    cube->effectMatrixRain.dropSpeed = matrixRainData.dropSpeed;
+                    cube->effectMatrixRain.trailLength = matrixRainData.trailLength;
+                    cube->effectMatrixRain.spawnChance = matrixRainData.spawnChance;
+                    cube->setActiveEffect(CubeEffects::MATRIX_RAIN);
+                }
+            }
+
+            {
+                sets::Menu m(b, "Game of Life");
+                b.Slider("gol.interval"_h, "Update Interval", 100.0f, 500.0f, 25.0f, "ms", &gameOfLifeData.updateInterval);
+                b.Slider("gol.threshold"_h, "Reset Threshold", 3000.0f, 10000.0f, 500.0f, "ms", &gameOfLifeData.randomizeThreshold);
+                b.Slider("gol.density"_h, "Initial Density", 20, 50, 5, "%", &gameOfLifeData.initialDensity);
+                if (b.Button("Activate"))
+                {
+                    Serial.println("set active GAME_OF_LIFE");
+                    cube->effectGameOfLife.updateInterval = gameOfLifeData.updateInterval;
+                    cube->effectGameOfLife.randomizeThreshold = gameOfLifeData.randomizeThreshold;
+                    cube->effectGameOfLife.initialDensity = gameOfLifeData.initialDensity;
+                    cube->setActiveEffect(CubeEffects::GAME_OF_LIFE);
                 }
             }
         }

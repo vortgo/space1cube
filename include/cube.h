@@ -35,6 +35,10 @@ enum class CubeEffects
     SPIRIT_WIND,
     VORTEX,
     RAINDROP,
+    FIRE,
+    PLASMA,
+    MATRIX_RAIN,
+    GAME_OF_LIFE,
 };
 
 enum class Color : uint32_t
@@ -542,6 +546,104 @@ private:
     bool printed = false;
 };
 
+// ============ FIRE EFFECT ============
+// Реалистичная симуляция огня с охлаждением, искрами и диффузией тепла
+class EffectFire : public Effect {
+public:
+    EffectFire();
+    void render(Cube& cube, unsigned long deltaTime) override;
+
+    // Публичные параметры для настройки
+    int cooling = 55;         // Скорость охлаждения (30-80)
+    int sparking = 120;       // Вероятность искр (50-200)
+    int hueShift = 0;         // Сдвиг оттенка для разных цветов огня (0-255)
+
+private:
+    static const int WIDTH = 8;
+    static const int HEIGHT = 8;
+    uint8_t heat[WIDTH][HEIGHT];  // Карта тепла
+
+    void fireStep();
+    uint32_t heatToColor(uint8_t h);
+};
+
+// ============ PLASMA EFFECT ============
+// Плазменный эффект с синусоидальными волнами и плавными цветовыми переходами
+class EffectPlasma : public Effect {
+public:
+    EffectPlasma();
+    void render(Cube& cube, unsigned long deltaTime) override;
+
+    // Публичные параметры для настройки
+    float speed = 0.05f;          // Скорость анимации
+    float scale = 4.0f;           // Масштаб паттерна
+    int colorShift = 0;           // Сдвиг цвета (0-255)
+
+private:
+    float time = 0;
+    uint32_t plasmaColor(float value);
+};
+
+// ============ MATRIX RAIN EFFECT ============
+// Цифровой дождь как в фильме "Матрица"
+class EffectMatrixRain : public Effect {
+public:
+    EffectMatrixRain();
+    void render(Cube& cube, unsigned long deltaTime) override;
+
+    // Публичные параметры для настройки
+    float dropSpeed = 0.15f;      // Скорость падения капель
+    int trailLength = 4;          // Длина следа
+    float spawnChance = 0.3f;     // Вероятность появления новой капли
+
+private:
+    static const int WIDTH = 8;
+    static const int HEIGHT = 8;
+
+    struct Drop {
+        float y;
+        bool active;
+        float speed;
+    };
+
+    Drop drops[WIDTH];
+    float brightness[WIDTH][HEIGHT];  // Яркость каждого пикселя
+
+    void spawnDrop(int x);
+    uint32_t getGreenShade(float intensity);
+};
+
+// ============ GAME OF LIFE EFFECT ============
+// Клеточный автомат Конвея "Игра жизни"
+class EffectGameOfLife : public Effect {
+public:
+    EffectGameOfLife();
+    void render(Cube& cube, unsigned long deltaTime) override;
+
+    // Публичные параметры для настройки
+    float updateInterval = 200.0f;    // Интервал обновления поколения (мс)
+    float randomizeThreshold = 5000.0f; // Время до рандомизации при стагнации (мс)
+    int initialDensity = 35;           // Начальная плотность (%)
+
+private:
+    static const int WIDTH = 8;
+    static const int HEIGHT = 8;
+
+    bool grid[WIDTH][HEIGHT];
+    bool nextGrid[WIDTH][HEIGHT];
+    uint32_t cellColor;
+
+    float timeSinceUpdate = 0;
+    float timeSinceChange = 0;
+    int lastPopulation = 0;
+    int stagnationCount = 0;
+
+    void randomize();
+    void nextGeneration();
+    int countNeighbors(int x, int y);
+    uint32_t getRandomColor();
+};
+
 /**
  * @brief Класс Cube объединяет 6 матриц – по одной для каждой грани куба.
  *
@@ -572,6 +674,10 @@ public:
     EffectSpiritWind effectSpiritWind = EffectSpiritWind();
     EffectVortex effectVortex = EffectVortex();
     EffectRaindropRipples effectRaindropRipples = EffectRaindropRipples();
+    EffectFire effectFire = EffectFire();
+    EffectPlasma effectPlasma = EffectPlasma();
+    EffectMatrixRain effectMatrixRain = EffectMatrixRain();
+    EffectGameOfLife effectGameOfLife = EffectGameOfLife();
 
     float voltage = 0.0f;
 
@@ -677,6 +783,22 @@ public:
             activeEffect = &effectRaindropRipples;
             Serial.println("activeEffect RAINDROP");
             break;
+        case CubeEffects::FIRE:
+            activeEffect = &effectFire;
+            Serial.println("activeEffect FIRE");
+            break;
+        case CubeEffects::PLASMA:
+            activeEffect = &effectPlasma;
+            Serial.println("activeEffect PLASMA");
+            break;
+        case CubeEffects::MATRIX_RAIN:
+            activeEffect = &effectMatrixRain;
+            Serial.println("activeEffect MATRIX_RAIN");
+            break;
+        case CubeEffects::GAME_OF_LIFE:
+            activeEffect = &effectGameOfLife;
+            Serial.println("activeEffect GAME_OF_LIFE");
+            break;
         default:
             break;
         }
@@ -739,7 +861,7 @@ public:
 
     std::vector<std::reference_wrapper<Effect>> getEffectsForRotate()
     {
-        return {breathingHeart, fallingStar, soundLevel, effectSpiral, fadePixels, effectDice, effectRomb, effectAurora, effectLavaLamp, effectGravity, effectParticles, effectSnake, effectDynamicGroups, effectCyberGhost, effectSpiritWind, effectVortex, effectRaindropRipples};
+        return {breathingHeart, fallingStar, soundLevel, effectSpiral, fadePixels, effectDice, effectRomb, effectAurora, effectLavaLamp, effectGravity, effectParticles, effectSnake, effectDynamicGroups, effectCyberGhost, effectSpiritWind, effectVortex, effectRaindropRipples, effectFire, effectPlasma, effectMatrixRain, effectGameOfLife};
     }
 
 private:
