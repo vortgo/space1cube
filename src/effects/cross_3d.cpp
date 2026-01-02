@@ -2,9 +2,7 @@
 #include "cube_geometry.h"
 
 // Test effect: 3 crossing strips using cube_geometry transitions
-// Ring 1 (red): horizontal ring through the equator
-// Ring 2 (green): vertical ring through right/left
-// Ring 3 (blue): vertical ring through front/back
+// Each ring needs direction change when transitioning between faces
 
 EffectCross3D::EffectCross3D() {
     pos1 = 0;
@@ -12,12 +10,46 @@ EffectCross3D::EffectCross3D() {
     pos3 = 0;
 }
 
+// Move one step along a ring, adjusting direction based on current face
+// ringType: 0 = horizontal (dx), 1 = vertical right/left, 2 = vertical front/back
+void moveAlongRing(CubePos& pos, int ringType) {
+    int dx = 0, dy = 0;
+
+    if (ringType == 0) {
+        // Horizontal ring: always move dx=+1
+        dx = 1;
+    }
+    else if (ringType == 1) {
+        // Vertical ring through right/left/top/bottom
+        // right: dy=+1 (down), bottom: dx=+1, left: dy=-1 (up), top: dx=-1
+        switch (pos.face) {
+            case 3: dy = 1; break;   // right: down
+            case 5: dx = 1; break;   // bottom: toward left (dx+)
+            case 2: dy = -1; break;  // left: up
+            case 4: dx = -1; break;  // top: toward right (dx-)
+            default: dy = 1; break;
+        }
+    }
+    else if (ringType == 2) {
+        // Vertical ring through front/top/back/bottom
+        // front: dy=-1 (up), top: dy=+1 (toward back), back: dy=+1 (down), bottom: dy=-1 (toward front)
+        switch (pos.face) {
+            case 0: dy = -1; break;  // front: up
+            case 4: dy = 1; break;   // top: toward back
+            case 1: dy = 1; break;   // back: down
+            case 5: dy = -1; break;  // bottom: toward front
+            default: dy = -1; break;
+        }
+    }
+
+    moveOnCube(pos, dx, dy);
+}
+
 void EffectCross3D::render(Cube& cube, unsigned long deltaTime) {
     pos1 += speed * deltaTime;
     pos2 += speed * deltaTime * 0.7f;
     pos3 += speed * deltaTime * 1.3f;
 
-    // Each ring is 32 pixels (4 faces * 8 pixels)
     while (pos1 >= 32.0f) pos1 -= 32.0f;
     while (pos2 >= 32.0f) pos2 -= 32.0f;
     while (pos3 >= 32.0f) pos3 -= 32.0f;
@@ -26,41 +58,35 @@ void EffectCross3D::render(Cube& cube, unsigned long deltaTime) {
 
     Matrix* faces[] = {&cube.front, &cube.back, &cube.left, &cube.right, &cube.top, &cube.bottom};
 
-    // Ring 1 (RED): Horizontal ring - starts on front, moves right (dx=1)
-    // Path: front → right → back → left → front
+    // Ring 1 (RED): Horizontal ring
+    // Path: front → right → back → left → front (moving dx=+1 always)
     {
-        // Starting position: front face, center Y, moving right
-        CubePos startPos = {0, 0, 3};  // front, x=0, y=3 (center)
-
-        // Move to current position in the ring
+        CubePos startPos = {0, 0, 3};  // front, x=0, y=3
         CubePos currentPos = startPos;
+
         int offset = (int)pos1;
         for (int step = 0; step < offset; step++) {
-            moveOnCube(currentPos, 1, 0);  // move right
+            moveAlongRing(currentPos, 0);
         }
 
-        // Draw strip (4 pixels long, 2 pixels wide)
         for (int i = 0; i < stripLength; i++) {
-            // Draw at current position (2 pixels wide in Y)
             for (int w = 0; w < stripWidth; w++) {
                 CubePos drawPos = getNeighbor(currentPos.face, currentPos.x, currentPos.y, 0, w);
                 faces[drawPos.face]->setPixel(drawPos.x, drawPos.y, color1);
             }
-            // Move to next position
-            moveOnCube(currentPos, 1, 0);
+            moveAlongRing(currentPos, 0);
         }
     }
 
     // Ring 2 (GREEN): Vertical ring through right/left
-    // Path: right(down) → bottom → left(up) → top → right
+    // Path: right(down) → bottom(dx+) → left(up) → top(dx-) → right
     {
-        // Starting position: right face, center X, top, moving down
-        CubePos startPos = {3, 3, 0};  // right, x=3 (center), y=0 (top)
-
+        CubePos startPos = {3, 3, 0};  // right, x=3, y=0
         CubePos currentPos = startPos;
+
         int offset = (int)pos2;
         for (int step = 0; step < offset; step++) {
-            moveOnCube(currentPos, 0, 1);  // move down
+            moveAlongRing(currentPos, 1);
         }
 
         for (int i = 0; i < stripLength; i++) {
@@ -68,20 +94,19 @@ void EffectCross3D::render(Cube& cube, unsigned long deltaTime) {
                 CubePos drawPos = getNeighbor(currentPos.face, currentPos.x, currentPos.y, w, 0);
                 faces[drawPos.face]->setPixel(drawPos.x, drawPos.y, color2);
             }
-            moveOnCube(currentPos, 0, 1);
+            moveAlongRing(currentPos, 1);
         }
     }
 
     // Ring 3 (BLUE): Vertical ring through front/back
-    // Path: front(up) → top → back(down) → bottom → front
+    // Path: front(up) → top(dy+) → back(down) → bottom(dy-) → front
     {
-        // Starting position: front face, center X, bottom, moving up
-        CubePos startPos = {0, 3, 7};  // front, x=3 (center), y=7 (bottom)
-
+        CubePos startPos = {0, 3, 7};  // front, x=3, y=7
         CubePos currentPos = startPos;
+
         int offset = (int)pos3;
         for (int step = 0; step < offset; step++) {
-            moveOnCube(currentPos, 0, -1);  // move up
+            moveAlongRing(currentPos, 2);
         }
 
         for (int i = 0; i < stripLength; i++) {
@@ -89,7 +114,7 @@ void EffectCross3D::render(Cube& cube, unsigned long deltaTime) {
                 CubePos drawPos = getNeighbor(currentPos.face, currentPos.x, currentPos.y, w, 0);
                 faces[drawPos.face]->setPixel(drawPos.x, drawPos.y, color3);
             }
-            moveOnCube(currentPos, 0, -1);
+            moveAlongRing(currentPos, 2);
         }
     }
 
