@@ -142,14 +142,6 @@ struct RotateData
 };
 RotateData rotateData;
 
-struct FireData
-{
-    int cooling = 55;
-    int sparking = 120;
-    int hueShift = 0;
-};
-FireData fireData;
-
 struct PlasmaData
 {
     float speed = 0.05f;
@@ -415,21 +407,6 @@ void build(sets::Builder &b)
                     Serial.println("set active RAINDROP");
                     cube->effectRaindropRipples.dropInterval = raindropData.dropInterval;
                     cube->setActiveEffect(CubeEffects::RAINDROP);
-                }
-            }
-
-            {
-                sets::Menu m(b, "Fire");
-                b.Slider("fire.cooling"_h, "Cooling", 30, 80, 5, "", &fireData.cooling);
-                b.Slider("fire.sparking"_h, "Sparking", 50, 200, 10, "", &fireData.sparking);
-                b.Slider("fire.hue"_h, "Color Shift", 0, 255, 5, "", &fireData.hueShift);
-                if (b.Button("Activate"))
-                {
-                    Serial.println("set active FIRE");
-                    cube->effectFire.cooling = fireData.cooling;
-                    cube->effectFire.sparking = fireData.sparking;
-                    cube->effectFire.hueShift = fireData.hueShift;
-                    cube->setActiveEffect(CubeEffects::FIRE);
                 }
             }
 

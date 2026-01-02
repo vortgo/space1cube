@@ -35,7 +35,6 @@ enum class CubeEffects
     SPIRIT_WIND,
     VORTEX,
     RAINDROP,
-    FIRE,
     PLASMA,
     MATRIX_RAIN,
     GAME_OF_LIFE,
@@ -546,27 +545,6 @@ private:
     bool printed = false;
 };
 
-// ============ FIRE EFFECT ============
-// Реалистичная симуляция огня с охлаждением, искрами и диффузией тепла
-class EffectFire : public Effect {
-public:
-    EffectFire();
-    void render(Cube& cube, unsigned long deltaTime) override;
-
-    // Публичные параметры для настройки
-    int cooling = 55;         // Скорость охлаждения (30-80)
-    int sparking = 120;       // Вероятность искр (50-200)
-    int hueShift = 0;         // Сдвиг оттенка для разных цветов огня (0-255)
-
-private:
-    static const int GRID_W = 8;
-    static const int GRID_H = 8;
-    uint8_t heat[GRID_W][GRID_H];  // Карта тепла
-
-    void fireStep();
-    uint32_t heatToColor(uint8_t h);
-};
-
 // ============ PLASMA EFFECT ============
 // Плазменный эффект с синусоидальными волнами и плавными цветовыми переходами
 class EffectPlasma : public Effect {
@@ -674,7 +652,6 @@ public:
     EffectSpiritWind effectSpiritWind = EffectSpiritWind();
     EffectVortex effectVortex = EffectVortex();
     EffectRaindropRipples effectRaindropRipples = EffectRaindropRipples();
-    EffectFire effectFire = EffectFire();
     EffectPlasma effectPlasma = EffectPlasma();
     EffectMatrixRain effectMatrixRain = EffectMatrixRain();
     EffectGameOfLife effectGameOfLife = EffectGameOfLife();
@@ -783,10 +760,6 @@ public:
             activeEffect = &effectRaindropRipples;
             Serial.println("activeEffect RAINDROP");
             break;
-        case CubeEffects::FIRE:
-            activeEffect = &effectFire;
-            Serial.println("activeEffect FIRE");
-            break;
         case CubeEffects::PLASMA:
             activeEffect = &effectPlasma;
             Serial.println("activeEffect PLASMA");
@@ -861,7 +834,7 @@ public:
 
     std::vector<std::reference_wrapper<Effect>> getEffectsForRotate()
     {
-        return {breathingHeart, fallingStar, soundLevel, effectSpiral, fadePixels, effectDice, effectRomb, effectAurora, effectLavaLamp, effectGravity, effectParticles, effectSnake, effectDynamicGroups, effectCyberGhost, effectSpiritWind, effectVortex, effectRaindropRipples, effectFire, effectPlasma, effectMatrixRain, effectGameOfLife};
+        return {breathingHeart, fallingStar, soundLevel, effectSpiral, fadePixels, effectDice, effectRomb, effectAurora, effectLavaLamp, effectGravity, effectParticles, effectSnake, effectDynamicGroups, effectCyberGhost, effectSpiritWind, effectVortex, effectRaindropRipples, effectPlasma, effectMatrixRain, effectGameOfLife};
     }
 
 private:

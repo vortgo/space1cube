@@ -11,6 +11,12 @@
 int analogPin = 35;
 float voltage = 0.0;
 
+// Буфер для усреднения напряжения за 30 секунд
+const int VOLTAGE_SAMPLES = 30;  // 30 замеров (по 1 в секунду = 30 сек)
+float voltageSamples[VOLTAGE_SAMPLES];
+int voltageSampleIndex = 0;
+bool voltageBufferFull = false;
+
 // Рисует символ на одной грани
 void drawCharOnFace(Matrix& face, const std::string& character, uint32_t color) {
     int colOffset = 1;
@@ -78,7 +84,12 @@ void setup()
   logger.println("setupSettings");
   setupSettings();
 
-  cube->setActiveEffect(CubeEffects::VORTEX);
+  cube->setActiveEffect(CubeEffects::ROTATE);
+
+  // Инициализируем буфер напряжения
+  for (int i = 0; i < VOLTAGE_SAMPLES; i++) {
+    voltageSamples[i] = 0;
+  }
   std::vector<std::reference_wrapper<Matrix>> faces = cube->getFaces();
   for (auto face : faces)
   {
@@ -87,7 +98,19 @@ void setup()
 }
 
 unsigned long previousMillis = 0;
-const long interval = 5000;
+const long interval = 1000;  // 1 секунда между замерами
+
+// Вычисляет среднее напряжение из буфера
+float getAverageVoltage() {
+  float sum = 0;
+  int count = voltageBufferFull ? VOLTAGE_SAMPLES : voltageSampleIndex;
+  if (count == 0) return 0;
+
+  for (int i = 0; i < count; i++) {
+    sum += voltageSamples[i];
+  }
+  return sum / count;
+}
 
 void loop() {
   unsigned long currentMillis = millis();
@@ -97,13 +120,29 @@ void loop() {
 
     // Считываем напряжение
     int adcValue = analogRead(analogPin);
-    voltage = adcValue * (3.3 / 4095.0); // Преобразуем в напряжение
-    cube->setVoltage(voltage);
-    logger.print("Напряжение: ");
-    logger.print(voltage);
-    logger.println(" В");
-  }
+    float currentVoltage = adcValue * (3.3 / 4095.0);
 
+    // Добавляем в кольцевой буфер
+    voltageSamples[voltageSampleIndex] = currentVoltage;
+    voltageSampleIndex++;
+    if (voltageSampleIndex >= VOLTAGE_SAMPLES) {
+      voltageSampleIndex = 0;
+      voltageBufferFull = true;
+    }
+
+    // Вычисляем среднее и передаём в куб
+    voltage = getAverageVoltage();
+    cube->setVoltage(voltage);
+
+    // Логируем только раз в 5 секунд
+    static int logCounter = 0;
+    if (++logCounter >= 5) {
+      logCounter = 0;
+      logger.print("Напряжение (avg 30s): ");
+      logger.print(voltage);
+      logger.println(" В");
+    }
+  }
 
   cube->tick();
   sett.tick();
