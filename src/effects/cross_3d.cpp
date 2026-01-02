@@ -28,7 +28,7 @@ void EffectCross3D::render(Cube& cube, unsigned long deltaTime) {
     // Code indices: 0=front, 1=back, 2=left, 3=right, 4=top, 5=bottom
     Matrix* faces[] = {&cube.front, &cube.back, &cube.left, &cube.right, &cube.top, &cube.bottom};
 
-    // Ring 1: Horizontal ring through back(1)→left(2)→front(0)→right(3)
+    // Ring 1 (RED): Horizontal ring through back(1)→left(2)→front(0)→right(3)
     // Strip moves in X direction, constant Y (center: y=3,4)
     {
         int ringFaces[] = {1, 2, 0, 3};  // back, left, front, right
@@ -47,8 +47,9 @@ void EffectCross3D::render(Cube& cube, unsigned long deltaTime) {
         }
     }
 
-    // Ring 2: Vertical ring through top(4)→right(3)→bottom(5)→left(2)
-    // This ring goes: top(moving in Y+) → right(moving in Y+) → bottom(moving in Y-) → left(moving in Y-)
+    // Ring 2 (GREEN): Vertical ring through top(4)→right(3)→bottom(5)→left(2)
+    // On right/left: moves in Y, constant X (center x=3,4)
+    // On top/bottom: moves in X, constant Y (center y=3,4) - perpendicular to blue!
     {
         int startPos = (int)pos2;
 
@@ -59,24 +60,23 @@ void EffectCross3D::render(Cube& cube, unsigned long deltaTime) {
 
             int faceIdx, x, y;
 
-            // X position: center (x=3,4)
             switch (segment) {
-                case 0: // top: y goes 0→7 (front to back), x=3,4
+                case 0: // top: x goes 0→7 (right to left), constant y=3,4
                     faceIdx = 4;
-                    x = 3;
-                    y = localPos;
+                    x = localPos;
+                    y = 3;
                     break;
-                case 1: // right: y goes 0→7, x=3,4
+                case 1: // right: y goes 0→7, constant x=3,4
                     faceIdx = 3;
                     x = 3;
                     y = localPos;
                     break;
-                case 2: // bottom: y goes 7→0 (back to front), x=3,4
+                case 2: // bottom: x goes 7→0 (left to right), constant y=3,4
                     faceIdx = 5;
-                    x = 3;
-                    y = 7 - localPos;
+                    x = 7 - localPos;
+                    y = 3;
                     break;
-                case 3: // left: y goes 7→0, x=3,4
+                case 3: // left: y goes 7→0, constant x=3,4
                     faceIdx = 2;
                     x = 3;
                     y = 7 - localPos;
@@ -87,12 +87,21 @@ void EffectCross3D::render(Cube& cube, unsigned long deltaTime) {
 
             // Draw 2-pixel wide strip
             for (int w = 0; w < stripWidth; w++) {
-                faces[faceIdx]->setPixel(x + w, y, color2);
+                if (segment == 0 || segment == 2) {
+                    // On top/bottom: width in Y direction
+                    faces[faceIdx]->setPixel(x, y + w, color2);
+                } else {
+                    // On right/left: width in X direction
+                    faces[faceIdx]->setPixel(x + w, y, color2);
+                }
             }
         }
     }
 
-    // Ring 3: Vertical ring through front(0)→top(4)→back(1)→bottom(5)
+    // Ring 3 (BLUE): Vertical ring through front(0)→top(4)→back(1)→bottom(5)
+    // Direction: front(UP) → top(toward back) → back(DOWN) → bottom(toward front)
+    // On front/back: moves in Y, constant X (center x=3,4)
+    // On top/bottom: moves in Y, constant X (need to account for 180° rotation)
     {
         int startPos = (int)pos3;
 
@@ -104,32 +113,37 @@ void EffectCross3D::render(Cube& cube, unsigned long deltaTime) {
             int faceIdx, x, y;
 
             switch (segment) {
-                case 0: // front: y goes 7→0 (bottom to top), x=3,4
+                case 0: // front: y goes 7→0 (going UP toward top)
                     faceIdx = 0;
                     x = 3;
                     y = 7 - localPos;
                     break;
-                case 1: // top: y goes 0→7, but x is inverted due to 180° rotation
-                    // front x=3 connects to top x=4 (W-1-x), going toward back (y increasing)
+                case 1: // top: y goes 0→7 (from front edge toward back edge)
+                    // front x=3 → top x=W-1-3=4 (due to 180° rotation)
+                    // top y=0 is near front, y=7 is near back
                     faceIdx = 4;
-                    x = 4;  // W-1-3 = 4
+                    x = 4;
                     y = localPos;
                     break;
-                case 2: // back: y goes 0→7 (top to bottom)
+                case 2: // back: y goes 0→7 (going DOWN from top)
+                    // top x=4 enters back... back is not rotated relative to top exit
+                    // back x should match visually
                     faceIdx = 1;
                     x = 3;
                     y = localPos;
                     break;
-                case 3: // bottom: y goes 7→0, x is inverted
+                case 3: // bottom: y goes 7→0 (from back edge toward front edge)
+                    // back x=3 → bottom x=3 (same, not inverted for back→bottom)
+                    // bottom y=7 is near back, y=0 is near front
                     faceIdx = 5;
-                    x = 4;  // W-1-3 = 4
+                    x = 4;
                     y = 7 - localPos;
                     break;
                 default:
                     continue;
             }
 
-            // Draw 2-pixel wide strip
+            // Draw 2-pixel wide strip (width in X direction)
             for (int w = 0; w < stripWidth; w++) {
                 faces[faceIdx]->setPixel(x + w, y, color3);
             }
