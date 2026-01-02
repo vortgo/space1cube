@@ -209,6 +209,9 @@ WormholeData wormholeData;
 struct PulsingCubeData { float pulseSpeed = 0.03f; float minBrightness = 0.2f; };
 PulsingCubeData pulsingCubeData;
 
+struct RubiksCubeData { float solveSpeed = 0.05f; float scrambleSpeed = 0.2f; float pauseDuration = 2000.0f; };
+RubiksCubeData rubiksCubeData;
+
 struct VortexData
 {
     float spawnRate = 0.08f;
@@ -899,6 +902,19 @@ void build(sets::Builder &b)
                     cube->effectPulsingCube.pulseSpeed = pulsingCubeData.pulseSpeed;
                     cube->effectPulsingCube.minBrightness = pulsingCubeData.minBrightness;
                     cube->setActiveEffect(CubeEffects::PULSING_CUBE);
+                }
+            }
+
+            {
+                sets::Menu m(b, "Rubik's Cube");
+                b.Slider("rc.solve"_h, "Solve Speed", 0.02f, 0.15f, 0.01f, "", &rubiksCubeData.solveSpeed);
+                b.Slider("rc.scramble"_h, "Scramble Speed", 0.1f, 0.5f, 0.05f, "", &rubiksCubeData.scrambleSpeed);
+                b.Slider("rc.pause"_h, "Pause (ms)", 1000.0f, 5000.0f, 500.0f, "", &rubiksCubeData.pauseDuration);
+                if (b.Button("Activate")) {
+                    cube->effectRubiksCube.solveSpeed = rubiksCubeData.solveSpeed;
+                    cube->effectRubiksCube.scrambleSpeed = rubiksCubeData.scrambleSpeed;
+                    cube->effectRubiksCube.pauseDuration = rubiksCubeData.pauseDuration;
+                    cube->setActiveEffect(CubeEffects::RUBIKS_CUBE);
                 }
             }
         }

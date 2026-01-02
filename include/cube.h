@@ -70,6 +70,7 @@ enum class CubeEffects
     MARBLE_MAZE,
     WORMHOLE,
     PULSING_CUBE,
+    RUBIKS_CUBE,
 };
 
 enum class Color : uint32_t
@@ -1309,6 +1310,46 @@ private:
     uint32_t getRandomColor();
 };
 
+// ============ RUBIKS CUBE EFFECT ============
+// Кубик Рубика - перемешивается и собирается
+class EffectRubiksCube : public Effect {
+public:
+    EffectRubiksCube();
+    void render(Cube& cube, unsigned long deltaTime) override;
+    float solveSpeed = 0.05f;       // Скорость сборки
+    float scrambleSpeed = 0.2f;     // Скорость перемешивания
+    float pauseDuration = 2000.0f;  // Пауза после сборки (мс)
+
+private:
+    static const int GRID_W = 8;
+    static const int GRID_H = 8;
+    static const int CUBE_SIZE = 3;  // 3x3 кубик Рубика
+
+    // Цвета граней: 0=front(красный), 1=back(оранжевый), 2=left(синий),
+    //               3=right(зелёный), 4=top(белый), 5=bottom(жёлтый)
+    uint32_t faceColors[6][CUBE_SIZE][CUBE_SIZE];
+    uint32_t solvedColors[6];
+
+    enum State { SCRAMBLING, SOLVING, PAUSED, SOLVED };
+    State state;
+    float stateTimer;
+    float moveTimer;
+
+    // Запись ходов для решения
+    struct Move { int face; bool clockwise; };
+    std::vector<Move> moveHistory;
+    int currentMoveIdx;
+    int scrambleMoves;
+    int totalScrambleMoves;
+
+    void initSolved();
+    void rotateFace(int face, bool clockwise);
+    void performMove();
+    void addScrambleMove();
+    void drawFace(Matrix& matrix, int faceIdx);
+    uint32_t getCellColor(int faceIdx, int row, int col);
+};
+
 /**
  * @brief Класс Cube объединяет 6 матриц – по одной для каждой грани куба.
  *
@@ -1374,6 +1415,7 @@ public:
     EffectMarbleMaze effectMarbleMaze = EffectMarbleMaze();
     EffectWormhole effectWormhole = EffectWormhole();
     EffectPulsingCube effectPulsingCube = EffectPulsingCube();
+    EffectRubiksCube effectRubiksCube = EffectRubiksCube();
 
     float voltage = 0.0f;
 
@@ -1616,6 +1658,10 @@ public:
             activeEffect = &effectPulsingCube;
             Serial.println("activeEffect PULSING_CUBE");
             break;
+        case CubeEffects::RUBIKS_CUBE:
+            activeEffect = &effectRubiksCube;
+            Serial.println("activeEffect RUBIKS_CUBE");
+            break;
         default:
             break;
         }
@@ -1678,7 +1724,7 @@ public:
 
     std::vector<std::reference_wrapper<Effect>> getEffectsForRotate()
     {
-        return {breathingHeart, fallingStar, soundLevel, effectSpiral, fadePixels, effectDice, effectRomb, effectAurora, effectLavaLamp, effectGravity, effectParticles, effectSnake, effectDynamicGroups, effectCyberGhost, effectSpiritWind, effectVortex, effectRaindropRipples, effectPlasma, effectMatrixRain, effectGameOfLife, effectFireworks, effectStarfield, effectLightning, effectBouncingBalls, effectRipplePond, effectFireflies, effectHeartbeatPulse, effectCometTrail, effectSparkle, effectCornerPulse, effectScanLine, effectPixelSort, effectGrowingSquares, effectRandomWalk, effectTetrisFall, effectRollingBall, effectSnake3D, effectCrawlingLight, effectLavaFlow, effectCubeRotation, effectSpinningInnerCube, effectRotatingRing, effectSurfaceWave, effectExplosion3D, effectRain3D, effectBouncingBall3D, effectGravity3D, effectMarbleMaze, effectWormhole, effectPulsingCube};
+        return {breathingHeart, fallingStar, soundLevel, effectSpiral, fadePixels, effectDice, effectRomb, effectAurora, effectLavaLamp, effectGravity, effectParticles, effectSnake, effectDynamicGroups, effectCyberGhost, effectSpiritWind, effectVortex, effectRaindropRipples, effectPlasma, effectMatrixRain, effectGameOfLife, effectFireworks, effectStarfield, effectLightning, effectBouncingBalls, effectRipplePond, effectFireflies, effectHeartbeatPulse, effectCometTrail, effectSparkle, effectCornerPulse, effectScanLine, effectPixelSort, effectGrowingSquares, effectRandomWalk, effectTetrisFall, effectRollingBall, effectSnake3D, effectCrawlingLight, effectLavaFlow, effectCubeRotation, effectSpinningInnerCube, effectRotatingRing, effectSurfaceWave, effectExplosion3D, effectRain3D, effectBouncingBall3D, effectGravity3D, effectMarbleMaze, effectWormhole, effectPulsingCube, effectRubiksCube};
     }
 
 private:
