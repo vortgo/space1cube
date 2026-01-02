@@ -769,7 +769,7 @@ void build(sets::Builder &b)
             }
 
             {
-                sets::Menu m(b, "Crawling Light");
+                sets::Menu m(b, "Crawling Light 3D");
                 b.Slider("cl.speed"_h, "Speed", 0.03f, 0.15f, 0.01f, "", &crawlingLightData.speed);
                 b.Slider("cl.trail"_h, "Trail Length", 5, 20, 1, "", &crawlingLightData.trailLength);
                 if (b.Button("Activate")) {
@@ -780,7 +780,7 @@ void build(sets::Builder &b)
             }
 
             {
-                sets::Menu m(b, "Lava Flow");
+                sets::Menu m(b, "Lava Flow 3D");
                 b.Slider("lf.speed"_h, "Flow Speed", 0.02f, 0.1f, 0.01f, "", &lavaFlowData.flowSpeed);
                 if (b.Button("Activate")) {
                     cube->effectLavaFlow.flowSpeed = lavaFlowData.flowSpeed;
@@ -789,7 +789,7 @@ void build(sets::Builder &b)
             }
 
             {
-                sets::Menu m(b, "Cube Rotation");
+                sets::Menu m(b, "Cube Rotation 3D");
                 b.Slider("cr.speed"_h, "Rotation Speed", 0.01f, 0.05f, 0.005f, "", &cubeRotationData.rotationSpeed);
                 b.Slider("cr.axis"_h, "Axis (0=X,1=Y,2=Z)", 0, 2, 1, "", &cubeRotationData.axis);
                 if (b.Button("Activate")) {
@@ -800,7 +800,7 @@ void build(sets::Builder &b)
             }
 
             {
-                sets::Menu m(b, "Spinning Inner Cube");
+                sets::Menu m(b, "Spinning Inner Cube 3D");
                 b.Slider("sic.speed"_h, "Speed", 0.01f, 0.08f, 0.01f, "", &spinningInnerCubeData.speed);
                 b.Slider("sic.size"_h, "Cube Size", 2, 6, 1, "", &spinningInnerCubeData.cubeSize);
                 if (b.Button("Activate")) {
@@ -811,7 +811,7 @@ void build(sets::Builder &b)
             }
 
             {
-                sets::Menu m(b, "Rotating Ring");
+                sets::Menu m(b, "Rotating Ring 3D");
                 b.Slider("rr.speed"_h, "Speed", 0.02f, 0.12f, 0.01f, "", &rotatingRingData.speed);
                 b.Slider("rr.width"_h, "Ring Width", 1, 4, 1, "", &rotatingRingData.ringWidth);
                 if (b.Button("Activate")) {
@@ -822,7 +822,7 @@ void build(sets::Builder &b)
             }
 
             {
-                sets::Menu m(b, "Surface Wave");
+                sets::Menu m(b, "Surface Wave 3D");
                 b.Slider("sw.speed"_h, "Wave Speed", 0.05f, 0.2f, 0.02f, "", &surfaceWaveData.waveSpeed);
                 b.Slider("sw.freq"_h, "Frequency", 0.2f, 1.0f, 0.1f, "", &surfaceWaveData.frequency);
                 if (b.Button("Activate")) {
@@ -875,7 +875,7 @@ void build(sets::Builder &b)
             }
 
             {
-                sets::Menu m(b, "Marble Maze");
+                sets::Menu m(b, "Marble Maze 3D");
                 b.Slider("mm.tilt"_h, "Tilt Speed", 0.01f, 0.05f, 0.005f, "", &marbleMazeData.tiltSpeed);
                 if (b.Button("Activate")) {
                     cube->effectMarbleMaze.tiltSpeed = marbleMazeData.tiltSpeed;
@@ -884,7 +884,7 @@ void build(sets::Builder &b)
             }
 
             {
-                sets::Menu m(b, "Wormhole");
+                sets::Menu m(b, "Wormhole 3D");
                 b.Slider("wh.speed"_h, "Speed", 0.02f, 0.1f, 0.01f, "", &wormholeData.speed);
                 b.Slider("wh.radius"_h, "Tunnel Radius", 2.0f, 5.0f, 0.5f, "", &wormholeData.tunnelRadius);
                 if (b.Button("Activate")) {
@@ -895,7 +895,7 @@ void build(sets::Builder &b)
             }
 
             {
-                sets::Menu m(b, "Pulsing Cube");
+                sets::Menu m(b, "Pulsing Cube 3D");
                 b.Slider("pc.speed"_h, "Pulse Speed", 0.01f, 0.08f, 0.01f, "", &pulsingCubeData.pulseSpeed);
                 b.Slider("pc.min"_h, "Min Brightness", 0.1f, 0.5f, 0.05f, "", &pulsingCubeData.minBrightness);
                 if (b.Button("Activate")) {
@@ -906,7 +906,7 @@ void build(sets::Builder &b)
             }
 
             {
-                sets::Menu m(b, "Rubik's Cube");
+                sets::Menu m(b, "Rubik's Cube 3D");
                 b.Slider("rc.solve"_h, "Solve Speed", 0.02f, 0.15f, 0.01f, "", &rubiksCubeData.solveSpeed);
                 b.Slider("rc.scramble"_h, "Scramble Speed", 0.1f, 0.5f, 0.05f, "", &rubiksCubeData.scrambleSpeed);
                 b.Slider("rc.pause"_h, "Pause (ms)", 1000.0f, 5000.0f, 500.0f, "", &rubiksCubeData.pauseDuration);
