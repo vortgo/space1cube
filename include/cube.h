@@ -53,6 +53,7 @@ enum class CubeEffects
     GROWING_SQUARES,
     RANDOM_WALK,
     TETRIS_FALL,
+    FACE_NUMBERS,
 };
 
 enum class Color : uint32_t
@@ -999,6 +1000,25 @@ private:
     uint32_t getRandomColor();
 };
 
+// ============ FACE NUMBERS EFFECT ============
+// Отображение номеров граней разными цветами
+class EffectFaceNumbers : public Effect {
+public:
+    EffectFaceNumbers();
+    void render(Cube& cube, unsigned long deltaTime) override;
+
+    bool colorCycle = true;          // Циклическая смена цветов
+    float cycleSpeed = 0.01f;        // Скорость смены цветов
+
+private:
+    static const int GRID_W = 8;
+    static const int GRID_H = 8;
+
+    float hueOffset = 0.0f;
+    void drawCharOnFace(Matrix& face, const std::string& character, uint32_t color);
+    uint32_t hueToColor(float hue);
+};
+
 /**
  * @brief Класс Cube объединяет 6 матриц – по одной для каждой грани куба.
  *
@@ -1047,6 +1067,7 @@ public:
     EffectGrowingSquares effectGrowingSquares = EffectGrowingSquares();
     EffectRandomWalk effectRandomWalk = EffectRandomWalk();
     EffectTetrisFall effectTetrisFall = EffectTetrisFall();
+    EffectFaceNumbers effectFaceNumbers = EffectFaceNumbers();
 
     float voltage = 0.0f;
 
@@ -1223,6 +1244,10 @@ public:
         case CubeEffects::TETRIS_FALL:
             activeEffect = &effectTetrisFall;
             Serial.println("activeEffect TETRIS_FALL");
+            break;
+        case CubeEffects::FACE_NUMBERS:
+            activeEffect = &effectFaceNumbers;
+            Serial.println("activeEffect FACE_NUMBERS");
             break;
         default:
             break;

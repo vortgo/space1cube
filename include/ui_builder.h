@@ -160,6 +160,9 @@ RandomWalkData randomWalkData;
 struct TetrisFallData { float fallSpeed = 0.1f; };
 TetrisFallData tetrisFallData;
 
+struct FaceNumbersData { bool colorCycle = true; float cycleSpeed = 0.01f; };
+FaceNumbersData faceNumbersData;
+
 struct VortexData
 {
     float spawnRate = 0.08f;
@@ -675,6 +678,21 @@ void build(sets::Builder &b)
                 if (b.Button("Activate")) {
                     cube->effectTetrisFall.fallSpeed = tetrisFallData.fallSpeed;
                     cube->setActiveEffect(CubeEffects::TETRIS_FALL);
+                }
+            }
+
+            {
+                sets::Menu m(b, "Face Numbers");
+                if (b.Switch("fn.cycle"_h, "Color Cycle", &faceNumbersData.colorCycle)) {
+                    cube->effectFaceNumbers.colorCycle = faceNumbersData.colorCycle;
+                }
+                if (faceNumbersData.colorCycle) {
+                    b.Slider("fn.speed"_h, "Cycle Speed", 0.005f, 0.05f, 0.005f, "", &faceNumbersData.cycleSpeed);
+                }
+                if (b.Button("Activate")) {
+                    cube->effectFaceNumbers.colorCycle = faceNumbersData.colorCycle;
+                    cube->effectFaceNumbers.cycleSpeed = faceNumbersData.cycleSpeed;
+                    cube->setActiveEffect(CubeEffects::FACE_NUMBERS);
                 }
             }
         }
