@@ -100,10 +100,52 @@ struct LavaLampData
 };
 LavaLampData lavaLampData;
 
+struct GravityData
+{
+    int maxParticles = 10;
+    float gravityStrength = 0.01f;
+    float explosionForce = 0.1f;
+};
+GravityData gravityData;
+
+struct SnakeData
+{
+    unsigned long moveInterval = 200;
+};
+SnakeData snakeData;
+
+struct VortexData
+{
+    float spawnRate = 0.08f;
+    float fadeRate = 0.98f;
+    float expansionRate = 0.07f;
+};
+VortexData vortexData;
+
+struct SpiritWindData
+{
+    float spawnRate = 0.05f;
+    float fadeRate = 0.97f;
+    float waveSpeed = 0.2f;
+};
+SpiritWindData spiritWindData;
+
+struct RaindropData
+{
+    float dropInterval = 3.0f;
+};
+RaindropData raindropData;
+
+struct RotateData
+{
+    float period = 15000;
+};
+RotateData rotateData;
+
 bool cfm_f, notice_f, alert_f;
 bool onTop = true, onBottom = true, onFront = true, onBack = true, onLeft = true, onRight = true;
 
-float maxBrightness = 0.8f;
+float maxBrightness = 0.5f;
 
 
 void build(sets::Builder &b)
@@ -182,9 +224,11 @@ void build(sets::Builder &b)
 
             {
                 sets::Menu pixelControl(b, "Rotate");
+                b.Slider("rotateData.period"_h, "Period (ms)", 5000, 30000, 1000, "", &rotateData.period);
                 if (b.Button("Activate"))
                 {
                     Serial.println("set active Rotate");
+                    cube->effectRotate.period = rotateData.period;
                     cube->setActiveEffect(CubeEffects::ROTATE);
                 }
             }
@@ -250,9 +294,15 @@ void build(sets::Builder &b)
 
             {
                 sets::Menu m(b, "Gravity");
+                b.Slider("gravityData.particles"_h, "Particles", 5, 20, 1, "", &gravityData.maxParticles);
+                b.Slider("gravityData.gravity"_h, "Gravity", 0.005f, 0.05f, 0.005f, "", &gravityData.gravityStrength);
+                b.Slider("gravityData.explosion"_h, "Explosion", 0.05f, 0.3f, 0.01f, "", &gravityData.explosionForce);
                 if (b.Button("Activate"))
                 {
                     Serial.println("set active GRAVITY");
+                    cube->effectGravity.maxParticles = gravityData.maxParticles;
+                    cube->effectGravity.gravityStrength = gravityData.gravityStrength;
+                    cube->effectGravity.explosionForce = gravityData.explosionForce;
                     cube->setActiveEffect(CubeEffects::GRAVITY);
                 }
             }
@@ -268,9 +318,11 @@ void build(sets::Builder &b)
 
             {
                 sets::Menu m(b, "Snake");
+                b.Slider("snakeData.speed"_h, "Speed (ms)", 50, 500, 10, "", &snakeData.moveInterval);
                 if (b.Button("Activate"))
                 {
                     Serial.println("set active SNAKE");
+                    cube->effectSnake.moveInterval = snakeData.moveInterval;
                     cube->setActiveEffect(CubeEffects::SNAKE);
                 }
             }
@@ -295,27 +347,41 @@ void build(sets::Builder &b)
 
             {
                 sets::Menu m(b, "Spirit Wind");
+                b.Slider("spiritWind.spawn"_h, "Spawn Rate", 0.01f, 0.15f, 0.01f, "", &spiritWindData.spawnRate);
+                b.Slider("spiritWind.fade"_h, "Fade Rate", 0.9f, 0.99f, 0.01f, "", &spiritWindData.fadeRate);
+                b.Slider("spiritWind.wave"_h, "Wave Speed", 0.1f, 0.5f, 0.05f, "", &spiritWindData.waveSpeed);
                 if (b.Button("Activate"))
                 {
                     Serial.println("set active SPIRIT_WIND");
+                    cube->effectSpiritWind.spawnRate = spiritWindData.spawnRate;
+                    cube->effectSpiritWind.fadeRate = spiritWindData.fadeRate;
+                    cube->effectSpiritWind.waveSpeed = spiritWindData.waveSpeed;
                     cube->setActiveEffect(CubeEffects::SPIRIT_WIND);
                 }
             }
 
             {
                 sets::Menu m(b, "Vortex");
+                b.Slider("vortex.spawn"_h, "Spawn Rate", 0.02f, 0.2f, 0.01f, "", &vortexData.spawnRate);
+                b.Slider("vortex.fade"_h, "Fade Rate", 0.9f, 0.99f, 0.01f, "", &vortexData.fadeRate);
+                b.Slider("vortex.expand"_h, "Expansion", 0.02f, 0.15f, 0.01f, "", &vortexData.expansionRate);
                 if (b.Button("Activate"))
                 {
                     Serial.println("set active VORTEX");
+                    cube->effectVortex.spawnRate = vortexData.spawnRate;
+                    cube->effectVortex.fadeRate = vortexData.fadeRate;
+                    cube->effectVortex.expansionRate = vortexData.expansionRate;
                     cube->setActiveEffect(CubeEffects::VORTEX);
                 }
             }
 
             {
                 sets::Menu m(b, "Raindrop");
+                b.Slider("raindrop.interval"_h, "Drop Interval", 0.5f, 5.0f, 0.5f, "sec", &raindropData.dropInterval);
                 if (b.Button("Activate"))
                 {
                     Serial.println("set active RAINDROP");
+                    cube->effectRaindropRipples.dropInterval = raindropData.dropInterval;
                     cube->setActiveEffect(CubeEffects::RAINDROP);
                 }
             }

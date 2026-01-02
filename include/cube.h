@@ -91,6 +91,8 @@ class EffectRaindropRipples : public Effect {
 public:
     void render(Cube& cube, unsigned long deltaTime) override;
 
+    float dropInterval = 3.0f;  // Интервал между каплями (сек)
+
 private:
     struct Ripple {
         int x, y;
@@ -102,7 +104,6 @@ private:
     Ripple ripple;
     bool rippleActive = false;
     float timeSinceLastDrop = 0.0f;
-    float dropInterval = 3.0f;
     uint32_t getRandomColor();
     uint32_t interpolateColor(uint32_t baseColor, float distanceFactor);
     void spawnRaindrop();
@@ -113,6 +114,10 @@ private:
 class EffectVortex : public Effect {
 public:
     void render(Cube& cube, unsigned long deltaTime) override;
+
+    float spawnRate = 0.08f;      // Частота появления частиц
+    float fadeRate = 0.98f;       // Скорость затухания
+    float expansionRate = 0.07f;  // Скорость расширения
 
 private:
     struct Particle {
@@ -126,10 +131,7 @@ private:
     };
 
     std::vector<Particle> particles;
-    float spawnRate = 0.08f;
     float timeSinceLastSpawn = 0;
-    float fadeRate = 0.98f;
-    float expansionRate = 0.07f;
     float colorChangeThreshold = 2.5f * M_PI;
     uint32_t baseColor;
     std::vector<uint32_t> colorShades;
@@ -146,6 +148,10 @@ class EffectSpiritWind : public Effect {
 public:
     void render(Cube& cube, unsigned long deltaTime) override;
 
+    float spawnRate = 0.05f;  // Частота появления частиц
+    float fadeRate = 0.97f;   // Скорость затухания
+    float waveSpeed = 0.2f;   // Скорость волн
+
 private:
     struct Particle {
         float x, y;
@@ -156,10 +162,7 @@ private:
     };
 
     std::vector<Particle> particles;
-    float spawnRate = 0.05f; // Уменьшенная частота появления новых частиц
     float timeSinceLastSpawn = 0;
-    float fadeRate = 0.97f;  // Коэффициент затухания
-    float waveSpeed = 0.2f;  // Скорость распространения волн
 
     uint32_t getRandomBlueShade();
 };
@@ -215,6 +218,8 @@ public:
     EffectSnake();
     void render(Cube& cube, unsigned long deltaTime) override;
 
+    unsigned long moveInterval = 200;  // Скорость змейки (мс)
+
 private:
     struct Segment {
         int x, y;
@@ -226,7 +231,6 @@ private:
     uint32_t foodColor;
     int directionX, directionY;
     unsigned long lastUpdateTime;
-    unsigned long moveInterval;
 
     void resetGame();
     void move();
@@ -263,6 +267,10 @@ class EffectGravityParticles : public Effect {
 public:
     void render(Cube& cube, unsigned long deltaTime) override;
 
+    int maxParticles = 10;           // Количество частиц
+    float gravityStrength = 0.01f;   // Сила притяжения
+    float explosionForce = 0.1f;     // Сила взрыва
+
 private:
     struct Particle {
         float x, y;
@@ -270,10 +278,7 @@ private:
     };
 
     std::vector<Particle> particles;
-    int maxParticles = 10;
-    float gravityStrength = 0.01f; // Замедленная скорость притяжения
-    float friction = 0.95f; // Больше трения для плавности
-    float explosionForce = 0.1f; // Уменьшена сила взрыва
+    float friction = 0.95f;
     bool exploding = false;
     bool gathered = false;
     unsigned long effectTime = 0;
