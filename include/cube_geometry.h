@@ -51,8 +51,8 @@ inline CubePos getNeighbor(int face, int x, int y, int dx, int dy) {
     else if (face == 2) { // LEFT
         if (newX < 0) { result = {1, W-1, y}; }           // → back
         else if (newX >= W) { result = {0, 0, y}; }       // → front
-        else if (newY < 0) { result = {4, W-1, H-1-x}; }  // → top (enter from right edge of top)
-        else if (newY >= H) { result = {5, W-1, x}; }     // → bottom (enter from right edge)
+        else if (newY < 0) { result = {4, W-1, x}; }      // → top (left x=0→back, x=7→front; top y=0→back, y=7→front)
+        else if (newY >= H) { result = {5, W-1, H-1-x}; } // → bottom (left x=0→back, x=7→front; bottom y=0→front, y=7→back)
     }
     else if (face == 1) { // BACK
         if (newX < 0) { result = {3, W-1, y}; }           // → right
@@ -63,18 +63,18 @@ inline CubePos getNeighbor(int face, int x, int y, int dx, int dy) {
     else if (face == 3) { // RIGHT
         if (newX < 0) { result = {0, W-1, y}; }           // → front
         else if (newX >= W) { result = {1, 0, y}; }       // → back
-        else if (newY < 0) { result = {4, 0, x}; }        // → top (enter from left edge of top)
-        else if (newY >= H) { result = {5, 0, H-1-x}; }   // → bottom (enter from left edge)
+        else if (newY < 0) { result = {4, 0, H-1-x}; }    // → top (right x=0→front, x=7→back; top y=7→front, y=0→back)
+        else if (newY >= H) { result = {5, 0, x}; }       // → bottom (right x=0→front, x=7→back; bottom y=0→front, y=7→back)
     }
     else if (face == 4) { // TOP (180° rotated relative to front)
-        if (newX < 0) { result = {3, y, 0}; }             // → right (x=0 on rotated top is right side)
-        else if (newX >= W) { result = {2, H-1-y, 0}; }   // → left (x=7 on rotated top is left side)
+        if (newX < 0) { result = {3, H-1-y, 0}; }         // → right (top y=0→back→right x=7, top y=7→front→right x=0)
+        else if (newX >= W) { result = {2, y, 0}; }       // → left (top y=0→back→left x=0, top y=7→front→left x=7)
         else if (newY < 0) { result = {1, x, 0}; }        // → back
         else if (newY >= H) { result = {0, W-1-x, 0}; }   // → front (180° rotated)
     }
     else if (face == 5) { // BOTTOM (180° rotated relative to front)
-        if (newX < 0) { result = {3, H-1-y, H-1}; }       // → right
-        else if (newX >= W) { result = {2, y, H-1}; }     // → left
+        if (newX < 0) { result = {3, y, H-1}; }           // → right (bottom y=0→front→right x=0, bottom y=7→back→right x=7)
+        else if (newX >= W) { result = {2, H-1-y, H-1}; } // → left (bottom y=0→front→left x=7, bottom y=7→back→left x=0)
         else if (newY < 0) { result = {0, W-1-x, H-1}; }  // → front (180° rotated)
         else if (newY >= H) { result = {1, x, H-1}; }     // → back
     }
