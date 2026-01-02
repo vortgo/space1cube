@@ -1,9 +1,10 @@
 #include "cube.h"
+#include "cube_geometry.h"
 
-// Test effect: 3 crossing strips to verify face transitions
-// Ring 1 (red): horizontal through back→left→front→right (faces 2→3→1→4 in user numbering)
-// Ring 2 (green): vertical through top→right→bottom→left (faces 5→4→6→3)
-// Ring 3 (blue): vertical through front→top→back→bottom (faces 1→5→2→6)
+// Test effect: 3 crossing strips using cube_geometry transitions
+// Ring 1 (red): horizontal ring through the equator
+// Ring 2 (green): vertical ring through right/left
+// Ring 3 (blue): vertical ring through front/back
 
 EffectCross3D::EffectCross3D() {
     pos1 = 0;
@@ -12,141 +13,83 @@ EffectCross3D::EffectCross3D() {
 }
 
 void EffectCross3D::render(Cube& cube, unsigned long deltaTime) {
-    // Update positions
     pos1 += speed * deltaTime;
-    pos2 += speed * deltaTime * 0.7f;  // Slightly different speed
-    pos3 += speed * deltaTime * 1.3f;  // Slightly different speed
+    pos2 += speed * deltaTime * 0.7f;
+    pos3 += speed * deltaTime * 1.3f;
 
-    // Wrap around (4 faces * 8 pixels = 32)
+    // Each ring is 32 pixels (4 faces * 8 pixels)
     while (pos1 >= 32.0f) pos1 -= 32.0f;
     while (pos2 >= 32.0f) pos2 -= 32.0f;
     while (pos3 >= 32.0f) pos3 -= 32.0f;
 
     cube.clear();
 
-    // Face references for easy access
-    // Code indices: 0=front, 1=back, 2=left, 3=right, 4=top, 5=bottom
     Matrix* faces[] = {&cube.front, &cube.back, &cube.left, &cube.right, &cube.top, &cube.bottom};
 
-    // Ring 1 (RED): Horizontal ring through back(1)→left(2)→front(0)→right(3)
-    // Strip moves in X direction, constant Y (center: y=3,4)
+    // Ring 1 (RED): Horizontal ring - starts on front, moves right (dx=1)
+    // Path: front → right → back → left → front
     {
-        int ringFaces[] = {1, 2, 0, 3};  // back, left, front, right
-        int startX = (int)pos1;
+        // Starting position: front face, center Y, moving right
+        CubePos startPos = {0, 0, 3};  // front, x=0, y=3 (center)
 
+        // Move to current position in the ring
+        CubePos currentPos = startPos;
+        int offset = (int)pos1;
+        for (int step = 0; step < offset; step++) {
+            moveOnCube(currentPos, 1, 0);  // move right
+        }
+
+        // Draw strip (4 pixels long, 2 pixels wide)
         for (int i = 0; i < stripLength; i++) {
-            int ringPos = (startX + i) % 32;
-            int faceIdx = ringFaces[ringPos / 8];
-            int x = ringPos % 8;
-
-            // Draw 2-pixel wide strip (y = 3, 4)
+            // Draw at current position (2 pixels wide in Y)
             for (int w = 0; w < stripWidth; w++) {
-                int y = 3 + w;
-                faces[faceIdx]->setPixel(x, y, color1);
+                CubePos drawPos = getNeighbor(currentPos.face, currentPos.x, currentPos.y, 0, w);
+                faces[drawPos.face]->setPixel(drawPos.x, drawPos.y, color1);
             }
+            // Move to next position
+            moveOnCube(currentPos, 1, 0);
         }
     }
 
-    // Ring 2 (GREEN): Vertical ring through top(4)→right(3)→bottom(5)→left(2)
-    // On right/left: moves in Y, constant X (center x=3,4)
-    // On top/bottom: moves in X, constant Y (center y=3,4) - perpendicular to blue!
+    // Ring 2 (GREEN): Vertical ring through right/left
+    // Path: right(down) → bottom → left(up) → top → right
     {
-        int startPos = (int)pos2;
+        // Starting position: right face, center X, top, moving down
+        CubePos startPos = {3, 3, 0};  // right, x=3 (center), y=0 (top)
+
+        CubePos currentPos = startPos;
+        int offset = (int)pos2;
+        for (int step = 0; step < offset; step++) {
+            moveOnCube(currentPos, 0, 1);  // move down
+        }
 
         for (int i = 0; i < stripLength; i++) {
-            int ringPos = (startPos + i) % 32;
-            int segment = ringPos / 8;
-            int localPos = ringPos % 8;
-
-            int faceIdx, x, y;
-
-            switch (segment) {
-                case 0: // top: x goes 0→7 (right to left), constant y=3,4
-                    faceIdx = 4;
-                    x = localPos;
-                    y = 3;
-                    break;
-                case 1: // right: y goes 0→7, constant x=3,4
-                    faceIdx = 3;
-                    x = 3;
-                    y = localPos;
-                    break;
-                case 2: // bottom: x goes 7→0 (left to right), constant y=3,4
-                    faceIdx = 5;
-                    x = 7 - localPos;
-                    y = 3;
-                    break;
-                case 3: // left: y goes 7→0, constant x=3,4
-                    faceIdx = 2;
-                    x = 3;
-                    y = 7 - localPos;
-                    break;
-                default:
-                    continue;
-            }
-
-            // Draw 2-pixel wide strip
             for (int w = 0; w < stripWidth; w++) {
-                if (segment == 0 || segment == 2) {
-                    // On top/bottom: width in Y direction
-                    faces[faceIdx]->setPixel(x, y + w, color2);
-                } else {
-                    // On right/left: width in X direction
-                    faces[faceIdx]->setPixel(x + w, y, color2);
-                }
+                CubePos drawPos = getNeighbor(currentPos.face, currentPos.x, currentPos.y, w, 0);
+                faces[drawPos.face]->setPixel(drawPos.x, drawPos.y, color2);
             }
+            moveOnCube(currentPos, 0, 1);
         }
     }
 
-    // Ring 3 (BLUE): Vertical ring through front(0)→top(4)→back(1)→bottom(5)
-    // Direction: front(UP) → top(toward back) → back(DOWN) → bottom(toward front)
-    // On front/back: moves in Y, constant X (center x=3,4)
-    // On top/bottom: moves in Y, constant X (need to account for 180° rotation)
+    // Ring 3 (BLUE): Vertical ring through front/back
+    // Path: front(up) → top → back(down) → bottom → front
     {
-        int startPos = (int)pos3;
+        // Starting position: front face, center X, bottom, moving up
+        CubePos startPos = {0, 3, 7};  // front, x=3 (center), y=7 (bottom)
+
+        CubePos currentPos = startPos;
+        int offset = (int)pos3;
+        for (int step = 0; step < offset; step++) {
+            moveOnCube(currentPos, 0, -1);  // move up
+        }
 
         for (int i = 0; i < stripLength; i++) {
-            int ringPos = (startPos + i) % 32;
-            int segment = ringPos / 8;
-            int localPos = ringPos % 8;
-
-            int faceIdx, x, y;
-
-            switch (segment) {
-                case 0: // front: y goes 7→0 (going UP toward top)
-                    faceIdx = 0;
-                    x = 3;
-                    y = 7 - localPos;
-                    break;
-                case 1: // top: y goes 0→7 (from front edge toward back edge)
-                    // front x=3 → top x=W-1-3=4 (due to 180° rotation)
-                    // top y=0 is near front, y=7 is near back
-                    faceIdx = 4;
-                    x = 4;
-                    y = localPos;
-                    break;
-                case 2: // back: y goes 0→7 (going DOWN from top)
-                    // top x=4 enters back... back is not rotated relative to top exit
-                    // back x should match visually
-                    faceIdx = 1;
-                    x = 3;
-                    y = localPos;
-                    break;
-                case 3: // bottom: y goes 7→0 (from back edge toward front edge)
-                    // back x=3 → bottom x=3 (same, not inverted for back→bottom)
-                    // bottom y=7 is near back, y=0 is near front
-                    faceIdx = 5;
-                    x = 4;
-                    y = 7 - localPos;
-                    break;
-                default:
-                    continue;
-            }
-
-            // Draw 2-pixel wide strip (width in X direction)
             for (int w = 0; w < stripWidth; w++) {
-                faces[faceIdx]->setPixel(x + w, y, color3);
+                CubePos drawPos = getNeighbor(currentPos.face, currentPos.x, currentPos.y, w, 0);
+                faces[drawPos.face]->setPixel(drawPos.x, drawPos.y, color3);
             }
+            moveOnCube(currentPos, 0, -1);
         }
     }
 
