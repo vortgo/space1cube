@@ -18,8 +18,8 @@ void EffectGameOfLife::render(Cube& cube, unsigned long deltaTime) {
 
         // Считаем текущую популяцию
         int currentPopulation = 0;
-        for (int x = 0; x < WIDTH; x++) {
-            for (int y = 0; y < HEIGHT; y++) {
+        for (int x = 0; x < GRID_W; x++) {
+            for (int y = 0; y < GRID_H; y++) {
                 if (grid[x][y]) currentPopulation++;
             }
         }
@@ -48,8 +48,8 @@ void EffectGameOfLife::render(Cube& cube, unsigned long deltaTime) {
         nextGeneration();
 
         // Копируем результат
-        for (int x = 0; x < WIDTH; x++) {
-            for (int y = 0; y < HEIGHT; y++) {
+        for (int x = 0; x < GRID_W; x++) {
+            for (int y = 0; y < GRID_H; y++) {
                 grid[x][y] = nextGrid[x][y];
             }
         }
@@ -59,8 +59,8 @@ void EffectGameOfLife::render(Cube& cube, unsigned long deltaTime) {
     std::vector<std::reference_wrapper<Matrix>> faces = cube.getFaces();
     for (auto& faceRef : faces) {
         Matrix& face = faceRef.get();
-        for (int x = 0; x < WIDTH; x++) {
-            for (int y = 0; y < HEIGHT; y++) {
+        for (int x = 0; x < GRID_W; x++) {
+            for (int y = 0; y < GRID_H; y++) {
                 if (grid[x][y]) {
                     face.setPixel(x, y, cellColor);
                 } else {
@@ -74,8 +74,8 @@ void EffectGameOfLife::render(Cube& cube, unsigned long deltaTime) {
 }
 
 void EffectGameOfLife::randomize() {
-    for (int x = 0; x < WIDTH; x++) {
-        for (int y = 0; y < HEIGHT; y++) {
+    for (int x = 0; x < GRID_W; x++) {
+        for (int y = 0; y < GRID_H; y++) {
             // Вероятность живой клетки зависит от initialDensity
             grid[x][y] = (random(100) < initialDensity);
         }
@@ -84,8 +84,8 @@ void EffectGameOfLife::randomize() {
 }
 
 void EffectGameOfLife::nextGeneration() {
-    for (int x = 0; x < WIDTH; x++) {
-        for (int y = 0; y < HEIGHT; y++) {
+    for (int x = 0; x < GRID_W; x++) {
+        for (int y = 0; y < GRID_H; y++) {
             int neighbors = countNeighbors(x, y);
 
             // Правила Конвея:
@@ -113,8 +113,8 @@ int EffectGameOfLife::countNeighbors(int x, int y) {
             if (dx == 0 && dy == 0) continue;  // Пропускаем саму клетку
 
             // Заворачиваем координаты
-            int nx = (x + dx + WIDTH) % WIDTH;
-            int ny = (y + dy + HEIGHT) % HEIGHT;
+            int nx = (x + dx + GRID_W) % GRID_W;
+            int ny = (y + dy + GRID_H) % GRID_H;
 
             if (grid[nx][ny]) {
                 count++;

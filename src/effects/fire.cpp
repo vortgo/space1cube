@@ -3,8 +3,8 @@
 
 EffectFire::EffectFire() {
     // Инициализируем карту тепла нулями
-    for (int x = 0; x < WIDTH; x++) {
-        for (int y = 0; y < HEIGHT; y++) {
+    for (int x = 0; x < GRID_W; x++) {
+        for (int y = 0; y < GRID_H; y++) {
             heat[x][y] = 0;
         }
     }
@@ -18,8 +18,8 @@ void EffectFire::render(Cube& cube, unsigned long deltaTime) {
     std::vector<std::reference_wrapper<Matrix>> faces = cube.getFaces();
     for (auto& faceRef : faces) {
         Matrix& face = faceRef.get();
-        for (int x = 0; x < WIDTH; x++) {
-            for (int y = 0; y < HEIGHT; y++) {
+        for (int x = 0; x < GRID_W; x++) {
+            for (int y = 0; y < GRID_H; y++) {
                 uint32_t color = heatToColor(heat[x][y]);
                 face.setPixel(x, y, color);
             }
@@ -30,9 +30,9 @@ void EffectFire::render(Cube& cube, unsigned long deltaTime) {
 
 void EffectFire::fireStep() {
     // Шаг 1: Охлаждение - каждая ячейка немного теряет тепло
-    for (int x = 0; x < WIDTH; x++) {
-        for (int y = 0; y < HEIGHT; y++) {
-            int cooldown = random(0, ((cooling * 10) / HEIGHT) + 2);
+    for (int x = 0; x < GRID_W; x++) {
+        for (int y = 0; y < GRID_H; y++) {
+            int cooldown = random(0, ((cooling * 10) / GRID_H) + 2);
             if (cooldown > heat[x][y]) {
                 heat[x][y] = 0;
             } else {
@@ -43,11 +43,11 @@ void EffectFire::fireStep() {
 
     // Шаг 2: Диффузия тепла вверх с размытием
     // Тепло поднимается снизу вверх с усреднением соседних значений
-    for (int y = HEIGHT - 1; y >= 2; y--) {
-        for (int x = 0; x < WIDTH; x++) {
+    for (int y = GRID_H - 1; y >= 2; y--) {
+        for (int x = 0; x < GRID_W; x++) {
             // Берём среднее от 3 ячеек снизу (с учётом границ)
-            int leftX = (x == 0) ? WIDTH - 1 : x - 1;
-            int rightX = (x == WIDTH - 1) ? 0 : x + 1;
+            int leftX = (x == 0) ? GRID_W - 1 : x - 1;
+            int rightX = (x == GRID_W - 1) ? 0 : x + 1;
 
             heat[x][y] = (heat[leftX][y - 1] +
                           heat[x][y - 1] +
@@ -57,7 +57,7 @@ void EffectFire::fireStep() {
     }
 
     // Шаг 3: Генерация искр внизу (случайное зажигание)
-    for (int x = 0; x < WIDTH; x++) {
+    for (int x = 0; x < GRID_W; x++) {
         // Вероятность появления искры зависит от параметра sparking
         if (random(255) < sparking) {
             // Зажигаем нижние ячейки (y = 0 или y = 1)

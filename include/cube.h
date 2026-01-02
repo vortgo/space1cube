@@ -559,9 +559,9 @@ public:
     int hueShift = 0;         // Сдвиг оттенка для разных цветов огня (0-255)
 
 private:
-    static const int WIDTH = 8;
-    static const int HEIGHT = 8;
-    uint8_t heat[WIDTH][HEIGHT];  // Карта тепла
+    static const int GRID_W = 8;
+    static const int GRID_H = 8;
+    uint8_t heat[GRID_W][GRID_H];  // Карта тепла
 
     void fireStep();
     uint32_t heatToColor(uint8_t h);
@@ -597,8 +597,8 @@ public:
     float spawnChance = 0.3f;     // Вероятность появления новой капли
 
 private:
-    static const int WIDTH = 8;
-    static const int HEIGHT = 8;
+    static const int GRID_W = 8;
+    static const int GRID_H = 8;
 
     struct Drop {
         float y;
@@ -606,8 +606,8 @@ private:
         float speed;
     };
 
-    Drop drops[WIDTH];
-    float brightness[WIDTH][HEIGHT];  // Яркость каждого пикселя
+    Drop drops[GRID_W];
+    float brightness[GRID_W][GRID_H];  // Яркость каждого пикселя
 
     void spawnDrop(int x);
     uint32_t getGreenShade(float intensity);
@@ -626,11 +626,11 @@ public:
     int initialDensity = 35;           // Начальная плотность (%)
 
 private:
-    static const int WIDTH = 8;
-    static const int HEIGHT = 8;
+    static const int GRID_W = 8;
+    static const int GRID_H = 8;
 
-    bool grid[WIDTH][HEIGHT];
-    bool nextGrid[WIDTH][HEIGHT];
+    bool grid[GRID_W][GRID_H];
+    bool nextGrid[GRID_W][GRID_H];
     uint32_t cellColor;
 
     float timeSinceUpdate = 0;

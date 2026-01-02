@@ -4,15 +4,15 @@
 
 EffectMatrixRain::EffectMatrixRain() {
     // Инициализируем все капли как неактивные
-    for (int x = 0; x < WIDTH; x++) {
+    for (int x = 0; x < GRID_W; x++) {
         drops[x].active = false;
         drops[x].y = 0;
         drops[x].speed = dropSpeed;
     }
 
     // Инициализируем яркость пикселей
-    for (int x = 0; x < WIDTH; x++) {
-        for (int y = 0; y < HEIGHT; y++) {
+    for (int x = 0; x < GRID_W; x++) {
+        for (int y = 0; y < GRID_H; y++) {
             brightness[x][y] = 0;
         }
     }
@@ -22,8 +22,8 @@ void EffectMatrixRain::render(Cube& cube, unsigned long deltaTime) {
     // Затухание всех пикселей
     float fadeAmount = 0.15f;  // Скорость затухания
 
-    for (int x = 0; x < WIDTH; x++) {
-        for (int y = 0; y < HEIGHT; y++) {
+    for (int x = 0; x < GRID_W; x++) {
+        for (int y = 0; y < GRID_H; y++) {
             brightness[x][y] *= (1.0f - fadeAmount);
             if (brightness[x][y] < 0.01f) {
                 brightness[x][y] = 0;
@@ -32,7 +32,7 @@ void EffectMatrixRain::render(Cube& cube, unsigned long deltaTime) {
     }
 
     // Обновляем каждую каплю
-    for (int x = 0; x < WIDTH; x++) {
+    for (int x = 0; x < GRID_W; x++) {
         if (drops[x].active) {
             // Перемещаем каплю вниз
             drops[x].y += drops[x].speed;
@@ -40,14 +40,14 @@ void EffectMatrixRain::render(Cube& cube, unsigned long deltaTime) {
             int iy = (int)drops[x].y;
 
             // Рисуем яркую головку капли
-            if (iy >= 0 && iy < HEIGHT) {
+            if (iy >= 0 && iy < GRID_H) {
                 brightness[x][iy] = 1.0f;  // Максимальная яркость для головки
             }
 
             // Рисуем хвост с постепенным затуханием
             for (int t = 1; t <= trailLength; t++) {
                 int tailY = iy - t;
-                if (tailY >= 0 && tailY < HEIGHT) {
+                if (tailY >= 0 && tailY < GRID_H) {
                     float tailBrightness = 1.0f - ((float)t / (trailLength + 1));
                     tailBrightness *= 0.7f;  // Хвост менее яркий чем голова
                     if (brightness[x][tailY] < tailBrightness) {
@@ -57,7 +57,7 @@ void EffectMatrixRain::render(Cube& cube, unsigned long deltaTime) {
             }
 
             // Проверяем, вышла ли капля за пределы + хвост
-            if (iy > HEIGHT + trailLength) {
+            if (iy > GRID_H + trailLength) {
                 drops[x].active = false;
             }
         } else {
@@ -72,8 +72,8 @@ void EffectMatrixRain::render(Cube& cube, unsigned long deltaTime) {
     std::vector<std::reference_wrapper<Matrix>> faces = cube.getFaces();
     for (auto& faceRef : faces) {
         Matrix& face = faceRef.get();
-        for (int x = 0; x < WIDTH; x++) {
-            for (int y = 0; y < HEIGHT; y++) {
+        for (int x = 0; x < GRID_W; x++) {
+            for (int y = 0; y < GRID_H; y++) {
                 uint32_t color = getGreenShade(brightness[x][y]);
                 face.setPixel(x, y, color);
             }
