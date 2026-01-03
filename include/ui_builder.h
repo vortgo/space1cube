@@ -170,6 +170,21 @@ DNA3DData dna3DData;
 struct Cross3DData { float speed = 0.05f; };
 Cross3DData cross3DData;
 
+struct ColorWipe3DData { float speed = 0.015f; float waveWidth = 4.0f; };
+ColorWipe3DData colorWipe3DData;
+
+struct Confetti3DData { float spawnRate = 15.0f; };
+Confetti3DData confetti3DData;
+
+struct GameOfLife3DData { float stepInterval = 200.0f; float density = 0.3f; };
+GameOfLife3DData gameOfLife3DData;
+
+struct Radar3DData { float rotationSpeed = 8.0f; float beamWidth = 2.0f; };
+Radar3DData radar3DData;
+
+struct Maze3DData { float solveSpeed = 0.1f; };
+Maze3DData maze3DData;
+
 struct VortexData
 {
     float spawnRate = 0.08f;
@@ -731,6 +746,63 @@ void build(sets::Builder &b)
                 if (b.Button("Activate")) {
                     cube->effectCross3D.speed = cross3DData.speed;
                     cube->setActiveEffect(CubeEffects::CROSS_3D);
+                }
+            }
+
+            {
+                sets::Menu m(b, "Color Wipe 3D");
+                b.Slider("cw3d.speed"_h, "Speed", 0.005f, 0.05f, 0.005f, "", &colorWipe3DData.speed);
+                b.Slider("cw3d.wave"_h, "Wave Width", 2.0f, 8.0f, 1.0f, "", &colorWipe3DData.waveWidth);
+                if (b.Button("Activate")) {
+                    cube->effectColorWipe3D.speed = colorWipe3DData.speed;
+                    cube->effectColorWipe3D.waveWidth = colorWipe3DData.waveWidth;
+                    cube->setActiveEffect(CubeEffects::COLOR_WIPE_3D);
+                }
+            }
+
+            {
+                sets::Menu m(b, "Confetti 3D");
+                b.Slider("cf3d.rate"_h, "Spawn Rate", 5.0f, 30.0f, 2.0f, "", &confetti3DData.spawnRate);
+                if (b.Button("Activate")) {
+                    cube->effectConfetti3D.spawnRate = confetti3DData.spawnRate;
+                    cube->setActiveEffect(CubeEffects::CONFETTI_3D);
+                }
+            }
+
+            {
+                sets::Menu m(b, "Game of Life 3D");
+                b.Slider("gol3d.interval"_h, "Step Interval", 100.0f, 400.0f, 25.0f, "ms", &gameOfLife3DData.stepInterval);
+                b.Slider("gol3d.density"_h, "Density", 0.2f, 0.5f, 0.05f, "", &gameOfLife3DData.density);
+                if (b.Button("Reset")) {
+                    cube->effectGameOfLife3D.reset();
+                }
+                if (b.Button("Activate")) {
+                    cube->effectGameOfLife3D.stepInterval = gameOfLife3DData.stepInterval;
+                    cube->effectGameOfLife3D.density = gameOfLife3DData.density;
+                    cube->setActiveEffect(CubeEffects::GAME_OF_LIFE_3D);
+                }
+            }
+
+            {
+                sets::Menu m(b, "Radar 3D");
+                b.Slider("rd3d.speed"_h, "Rotation Speed", 4.0f, 16.0f, 1.0f, "", &radar3DData.rotationSpeed);
+                b.Slider("rd3d.beam"_h, "Beam Width", 1.0f, 4.0f, 0.5f, "", &radar3DData.beamWidth);
+                if (b.Button("Activate")) {
+                    cube->effectRadar3D.rotationSpeed = radar3DData.rotationSpeed;
+                    cube->effectRadar3D.beamWidth = radar3DData.beamWidth;
+                    cube->setActiveEffect(CubeEffects::RADAR_3D);
+                }
+            }
+
+            {
+                sets::Menu m(b, "Maze 3D");
+                b.Slider("mz3d.speed"_h, "Solve Speed", 0.05f, 0.2f, 0.02f, "", &maze3DData.solveSpeed);
+                if (b.Button("Reset")) {
+                    cube->effectMaze3D.reset();
+                }
+                if (b.Button("Activate")) {
+                    cube->effectMaze3D.solveSpeed = maze3DData.solveSpeed;
+                    cube->setActiveEffect(CubeEffects::MAZE_3D);
                 }
             }
         }
