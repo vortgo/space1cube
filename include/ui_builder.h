@@ -170,20 +170,17 @@ DNA3DData dna3DData;
 struct Cross3DData { float speed = 0.05f; };
 Cross3DData cross3DData;
 
-struct ColorWipe3DData { float speed = 0.015f; float waveWidth = 4.0f; };
-ColorWipe3DData colorWipe3DData;
-
-struct Confetti3DData { float spawnRate = 15.0f; };
-Confetti3DData confetti3DData;
-
 struct GameOfLife3DData { float stepInterval = 200.0f; float density = 0.3f; };
 GameOfLife3DData gameOfLife3DData;
 
-struct Radar3DData { float rotationSpeed = 8.0f; float beamWidth = 2.0f; };
-Radar3DData radar3DData;
-
 struct Maze3DData { float solveSpeed = 0.1f; };
 Maze3DData maze3DData;
+
+struct Orbits3DData { float speed = 1.0f; int orbitCount = 3; };
+Orbits3DData orbits3DData;
+
+struct Fire3DData { int cooling = 20; int sparking = 50; };
+Fire3DData fire3DData;
 
 struct VortexData
 {
@@ -750,26 +747,6 @@ void build(sets::Builder &b)
             }
 
             {
-                sets::Menu m(b, "Color Wipe 3D");
-                b.Slider("cw3d.speed"_h, "Speed", 0.005f, 0.05f, 0.005f, "", &colorWipe3DData.speed);
-                b.Slider("cw3d.wave"_h, "Wave Width", 2.0f, 8.0f, 1.0f, "", &colorWipe3DData.waveWidth);
-                if (b.Button("Activate")) {
-                    cube->effectColorWipe3D.speed = colorWipe3DData.speed;
-                    cube->effectColorWipe3D.waveWidth = colorWipe3DData.waveWidth;
-                    cube->setActiveEffect(CubeEffects::COLOR_WIPE_3D);
-                }
-            }
-
-            {
-                sets::Menu m(b, "Confetti 3D");
-                b.Slider("cf3d.rate"_h, "Spawn Rate", 5.0f, 30.0f, 2.0f, "", &confetti3DData.spawnRate);
-                if (b.Button("Activate")) {
-                    cube->effectConfetti3D.spawnRate = confetti3DData.spawnRate;
-                    cube->setActiveEffect(CubeEffects::CONFETTI_3D);
-                }
-            }
-
-            {
                 sets::Menu m(b, "Game of Life 3D");
                 b.Slider("gol3d.interval"_h, "Step Interval", 100.0f, 400.0f, 25.0f, "ms", &gameOfLife3DData.stepInterval);
                 b.Slider("gol3d.density"_h, "Density", 0.2f, 0.5f, 0.05f, "", &gameOfLife3DData.density);
@@ -784,17 +761,6 @@ void build(sets::Builder &b)
             }
 
             {
-                sets::Menu m(b, "Radar 3D");
-                b.Slider("rd3d.speed"_h, "Rotation Speed", 4.0f, 16.0f, 1.0f, "", &radar3DData.rotationSpeed);
-                b.Slider("rd3d.beam"_h, "Beam Width", 1.0f, 4.0f, 0.5f, "", &radar3DData.beamWidth);
-                if (b.Button("Activate")) {
-                    cube->effectRadar3D.rotationSpeed = radar3DData.rotationSpeed;
-                    cube->effectRadar3D.beamWidth = radar3DData.beamWidth;
-                    cube->setActiveEffect(CubeEffects::RADAR_3D);
-                }
-            }
-
-            {
                 sets::Menu m(b, "Maze 3D");
                 b.Slider("mz3d.speed"_h, "Solve Speed", 0.05f, 0.2f, 0.02f, "", &maze3DData.solveSpeed);
                 if (b.Button("Reset")) {
@@ -803,6 +769,28 @@ void build(sets::Builder &b)
                 if (b.Button("Activate")) {
                     cube->effectMaze3D.solveSpeed = maze3DData.solveSpeed;
                     cube->setActiveEffect(CubeEffects::MAZE_3D);
+                }
+            }
+
+            {
+                sets::Menu m(b, "Orbits 3D");
+                b.Slider("orb3d.speed"_h, "Speed", 0.5f, 2.0f, 0.1f, "", &orbits3DData.speed);
+                b.Slider("orb3d.count"_h, "Orbit Count", 1, 5, 1, "", &orbits3DData.orbitCount);
+                if (b.Button("Activate")) {
+                    cube->effectOrbits3D.speed = orbits3DData.speed;
+                    cube->effectOrbits3D.orbitCount = orbits3DData.orbitCount;
+                    cube->setActiveEffect(CubeEffects::ORBITS_3D);
+                }
+            }
+
+            {
+                sets::Menu m(b, "Fire 3D");
+                b.Slider("fire3d.cool"_h, "Cooling", 10, 40, 2, "", &fire3DData.cooling);
+                b.Slider("fire3d.spark"_h, "Sparking", 30, 80, 5, "%", &fire3DData.sparking);
+                if (b.Button("Activate")) {
+                    cube->effectFire3D.cooling = fire3DData.cooling;
+                    cube->effectFire3D.sparking = fire3DData.sparking;
+                    cube->setActiveEffect(CubeEffects::FIRE_3D);
                 }
             }
         }

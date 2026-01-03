@@ -5,7 +5,7 @@
 
 EffectMaze3D::EffectMaze3D() {
     generateMaze();
-    solverPos = {0, 0, 0};
+    solverPos = {0, 1, 1};
     solving = false;
     solveTimer = 0;
     solveDelay = 100;
@@ -59,13 +59,43 @@ void EffectMaze3D::generateMaze() {
         }
     }
 
-    // Simple maze generation using recursive backtracking
-    // Start from front face center
-    carve(0, 1, 1);
+    // Generate maze on each face using recursive backtracking
+    for (int f = 0; f < 6; f++) {
+        carve(f, 1, 1);
+    }
 
-    // Set start and goal
-    solverPos = {0, 1, 1};
-    goalPos = {1, 6, 6}; // Back face
+    // Create connections between adjacent faces at edges
+    // Front-Right edge (x=7 on front connects to x=0 on right)
+    maze[0][7][3] = 0; maze[3][0][3] = 0;
+    maze[0][7][5] = 0; maze[3][0][5] = 0;
+
+    // Right-Back edge
+    maze[3][7][3] = 0; maze[1][0][3] = 0;
+    maze[3][7][5] = 0; maze[1][0][5] = 0;
+
+    // Back-Left edge
+    maze[1][7][3] = 0; maze[2][0][3] = 0;
+    maze[1][7][5] = 0; maze[2][0][5] = 0;
+
+    // Left-Front edge
+    maze[2][7][3] = 0; maze[0][0][3] = 0;
+    maze[2][7][5] = 0; maze[0][0][5] = 0;
+
+    // Top connections
+    maze[4][3][7] = 0; maze[0][3][0] = 0;  // top-front
+    maze[4][3][0] = 0; maze[1][3][0] = 0;  // top-back
+    maze[4][0][3] = 0; maze[2][3][0] = 0;  // top-left
+    maze[4][7][3] = 0; maze[3][3][0] = 0;  // top-right
+
+    // Bottom connections
+    maze[5][3][0] = 0; maze[0][3][7] = 0;  // bottom-front
+    maze[5][3][7] = 0; maze[1][3][7] = 0;  // bottom-back
+    maze[5][0][3] = 0; maze[2][3][7] = 0;  // bottom-left
+    maze[5][7][3] = 0; maze[3][3][7] = 0;  // bottom-right
+
+    // Set start and goal on different faces
+    solverPos = {0, 1, 1};  // Front face
+    goalPos = {1, 6, 6};    // Back face
 
     // Make sure goal is reachable
     maze[goalPos.face][goalPos.x][goalPos.y] = 0;
@@ -94,8 +124,8 @@ void EffectMaze3D::carve(int face, int x, int y) {
         int nx = x + dirs[i][0];
         int ny = y + dirs[i][1];
 
-        // Check if within bounds (for simplicity, stay on same face)
-        if (nx >= 0 && nx < 8 && ny >= 0 && ny < 8) {
+        // Check if within bounds (stay on same face for generation)
+        if (nx >= 1 && nx < 7 && ny >= 1 && ny < 7) {
             if (maze[face][nx][ny] == 1) {
                 // Carve passage
                 maze[face][x + dirs[i][0]/2][y + dirs[i][1]/2] = 0;
@@ -117,9 +147,17 @@ void EffectMaze3D::solveStep() {
     // Mark current as visited
     maze[solverPos.face][solverPos.x][solverPos.y] = 2;
 
-    // Try to find unvisited neighbor
+    // Try to find unvisited neighbor (use cube geometry for edge transitions)
     int dx[] = {0, 0, -1, 1};
     int dy[] = {-1, 1, 0, 0};
+
+    // Shuffle directions for variety
+    for (int i = 3; i > 0; i--) {
+        int j = random(i + 1);
+        int tx = dx[i]; int ty = dy[i];
+        dx[i] = dx[j]; dy[i] = dy[j];
+        dx[j] = tx; dy[j] = ty;
+    }
 
     bool moved = false;
     for (int i = 0; i < 4; i++) {

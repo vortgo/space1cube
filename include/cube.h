@@ -58,11 +58,10 @@ enum class CubeEffects
     SCAN_3D,
     DNA_3D,
     CROSS_3D,
-    COLOR_WIPE_3D,
-    CONFETTI_3D,
     GAME_OF_LIFE_3D,
-    RADAR_3D,
     MAZE_3D,
+    ORBITS_3D,
+    FIRE_3D,
 };
 
 enum class Color : uint32_t
@@ -1015,45 +1014,6 @@ private:
     uint32_t color3 = 0x0000FF;  // Blue - vertical ring 2
 };
 
-// ============ COLOR WIPE 3D EFFECT ============
-class EffectColorWipe3D : public Effect {
-public:
-    EffectColorWipe3D();
-    void render(Cube& cube, unsigned long deltaTime) override;
-    float speed = 0.015f;
-    float waveWidth = 4.0f;
-    float trailLength = 8.0f;
-private:
-    float position;
-    int hue;
-    float getPixelPosition(int face, int x, int y);
-    uint32_t hsvToColor(int h, float s, float v);
-};
-
-// ============ CONFETTI 3D EFFECT ============
-class EffectConfetti3D : public Effect {
-public:
-    EffectConfetti3D();
-    void render(Cube& cube, unsigned long deltaTime) override;
-    float spawnRate = 15.0f;  // Particles per second
-private:
-    static const int MAX_PARTICLES = 40;
-    struct Particle {
-        CubePos pos;
-        float speed;
-        float moveAccum;
-        float life;
-        uint32_t color;
-        bool active;
-    };
-    Particle particles[MAX_PARTICLES];
-    float spawnTimer;
-    void spawnParticle();
-    int countActive();
-    uint32_t getRandomColor();
-    uint32_t dimColor(uint32_t color, float factor);
-};
-
 // ============ GAME OF LIFE 3D EFFECT ============
 class EffectGameOfLife3D : public Effect {
 public:
@@ -1070,29 +1030,6 @@ private:
     void randomize();
     void nextGeneration();
     int countNeighbors(int face, int x, int y);
-};
-
-// ============ RADAR 3D EFFECT ============
-class EffectRadar3D : public Effect {
-public:
-    EffectRadar3D();
-    void render(Cube& cube, unsigned long deltaTime) override;
-    float rotationSpeed = 8.0f;  // Units per second (32 = full rotation)
-    float beamWidth = 2.0f;
-    float trailLength = 12.0f;
-    float blipChance = 0.5f;
-private:
-    float angle;
-    static const int MAX_BLIPS = 10;
-    struct Blip {
-        int face, x, y;
-        float life;
-        bool active;
-    };
-    Blip blips[MAX_BLIPS];
-    void drawCenterPattern(Matrix& face, uint32_t color);
-    void spawnBlip();
-    uint32_t dimColor(uint32_t color, float factor);
 };
 
 // ============ MAZE 3D EFFECT ============
@@ -1116,6 +1053,39 @@ private:
     void generateMaze();
     void carve(int face, int x, int y);
     void solveStep();
+};
+
+// ============ ORBITS 3D EFFECT ============
+class EffectOrbits3D : public Effect {
+public:
+    EffectOrbits3D();
+    void render(Cube& cube, unsigned long deltaTime) override;
+    float speed = 1.0f;
+    int orbitCount = 3;
+    int ringY = 4;  // Y position of the ring
+private:
+    static const int MAX_ORBITS = 5;
+    struct Orbit {
+        float position;  // 0-32 around the ring
+        float speed;
+        uint32_t color;
+        int trailLength;
+    };
+    Orbit orbits[MAX_ORBITS];
+    void positionToFaceXY(float pos, int& face, int& x, int& y);
+    uint32_t dimColor(uint32_t color, float factor);
+};
+
+// ============ FIRE 3D EFFECT ============
+class EffectFire3D : public Effect {
+public:
+    EffectFire3D();
+    void render(Cube& cube, unsigned long deltaTime) override;
+    int cooling = 20;    // How much heat cools down each frame
+    int sparking = 50;   // Chance of new sparks (0-100)
+private:
+    uint8_t heat[6][8][8];
+    uint32_t heatToColor(uint8_t temperature);
 };
 
 /**
@@ -1170,11 +1140,10 @@ public:
     EffectScan3D effectScan3D = EffectScan3D();
     EffectDNA3D effectDNA3D = EffectDNA3D();
     EffectCross3D effectCross3D = EffectCross3D();
-    EffectColorWipe3D effectColorWipe3D = EffectColorWipe3D();
-    EffectConfetti3D effectConfetti3D = EffectConfetti3D();
     EffectGameOfLife3D effectGameOfLife3D = EffectGameOfLife3D();
-    EffectRadar3D effectRadar3D = EffectRadar3D();
     EffectMaze3D effectMaze3D = EffectMaze3D();
+    EffectOrbits3D effectOrbits3D = EffectOrbits3D();
+    EffectFire3D effectFire3D = EffectFire3D();
 
     float voltage = 0.0f;
 
@@ -1365,25 +1334,21 @@ public:
             activeEffect = &effectCross3D;
             Serial.println("activeEffect CROSS_3D");
             break;
-        case CubeEffects::COLOR_WIPE_3D:
-            activeEffect = &effectColorWipe3D;
-            Serial.println("activeEffect COLOR_WIPE_3D");
-            break;
-        case CubeEffects::CONFETTI_3D:
-            activeEffect = &effectConfetti3D;
-            Serial.println("activeEffect CONFETTI_3D");
-            break;
         case CubeEffects::GAME_OF_LIFE_3D:
             activeEffect = &effectGameOfLife3D;
             Serial.println("activeEffect GAME_OF_LIFE_3D");
             break;
-        case CubeEffects::RADAR_3D:
-            activeEffect = &effectRadar3D;
-            Serial.println("activeEffect RADAR_3D");
-            break;
         case CubeEffects::MAZE_3D:
             activeEffect = &effectMaze3D;
             Serial.println("activeEffect MAZE_3D");
+            break;
+        case CubeEffects::ORBITS_3D:
+            activeEffect = &effectOrbits3D;
+            Serial.println("activeEffect ORBITS_3D");
+            break;
+        case CubeEffects::FIRE_3D:
+            activeEffect = &effectFire3D;
+            Serial.println("activeEffect FIRE_3D");
             break;
         default:
             break;
@@ -1447,7 +1412,7 @@ public:
 
     std::vector<std::reference_wrapper<Effect>> getEffectsForRotate()
     {
-        return {breathingHeart, fallingStar, soundLevel, effectSpiral, fadePixels, effectDice, effectRomb, effectAurora, effectGravity, effectParticles, effectSnake, effectDynamicGroups, effectCyberGhost, effectSpiritWind, effectVortex, effectPlasma, effectMatrixRain, effectGameOfLife, effectStarfield, effectLightning, effectBouncingBalls, effectRipplePond, effectFireflies, effectHeartbeatPulse, effectCometTrail, effectSparkle, effectCornerPulse, effectGrowingSquares, effectRandomWalk, effectTetrisFall, effectRollingBall3D, effectWave3D, effectSpiral3D, effectPulse3D, effectScan3D, effectDNA3D, effectColorWipe3D, effectConfetti3D, effectGameOfLife3D, effectRadar3D, effectMaze3D};
+        return {breathingHeart, fallingStar, soundLevel, effectSpiral, fadePixels, effectDice, effectRomb, effectAurora, effectGravity, effectParticles, effectSnake, effectDynamicGroups, effectCyberGhost, effectSpiritWind, effectVortex, effectPlasma, effectMatrixRain, effectGameOfLife, effectStarfield, effectLightning, effectBouncingBalls, effectRipplePond, effectFireflies, effectHeartbeatPulse, effectCometTrail, effectSparkle, effectCornerPulse, effectGrowingSquares, effectRandomWalk, effectTetrisFall, effectRollingBall3D, effectWave3D, effectSpiral3D, effectPulse3D, effectScan3D, effectDNA3D, effectGameOfLife3D, effectMaze3D, effectOrbits3D, effectFire3D};
     }
 
 private:
