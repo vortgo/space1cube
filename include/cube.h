@@ -860,6 +860,11 @@ public:
     float fallSpeed = 0.1f;         // Скорость падения
     float clearDelay = 500.0f;      // Задержка перед очисткой линии
 
+    void moveLeft();                // Двигать влево
+    void moveRight();               // Двигать вправо
+    void drop();                    // Быстрое падение
+    void rotate();                  // Поворот фигуры
+
 private:
     static const int GRID_W = 8;
     static const int GRID_H = 8;

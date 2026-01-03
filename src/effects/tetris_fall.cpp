@@ -169,3 +169,35 @@ uint32_t EffectTetrisFall::getRandomColor() {
     uint32_t colors[] = {0xFF0000, 0x00FF00, 0x0000FF, 0xFFFF00, 0xFF00FF, 0x00FFFF, 0xFFA500};
     return colors[random(7)];
 }
+
+void EffectTetrisFall::moveLeft() {
+    if (currentPiece.active && !checkCollision(currentPiece.x - 1, currentPiece.y)) {
+        currentPiece.x--;
+    }
+}
+
+void EffectTetrisFall::moveRight() {
+    if (currentPiece.active && !checkCollision(currentPiece.x + 1, currentPiece.y)) {
+        currentPiece.x++;
+    }
+}
+
+void EffectTetrisFall::drop() {
+    if (currentPiece.active) {
+        while (!checkCollision(currentPiece.x, currentPiece.y + 1)) {
+            currentPiece.y++;
+        }
+        lockPiece();
+        checkLines();
+    }
+}
+
+void EffectTetrisFall::rotate() {
+    if (currentPiece.active) {
+        int oldType = currentPiece.type;
+        currentPiece.type = (currentPiece.type + 1) % 3;
+        if (checkCollision(currentPiece.x, currentPiece.y)) {
+            currentPiece.type = oldType;
+        }
+    }
+}

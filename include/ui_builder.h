@@ -385,14 +385,14 @@ void build(sets::Builder &b)
                 if (b.Switch("snakeData.auto"_h, "Auto Mode", &snakeData.autoMode)) {
                     cube->effectSnake.autoMode = snakeData.autoMode;
                 }
-                if (!snakeData.autoMode) {
-                    if (b.Button("Turn Left")) {
-                        cube->effectSnake.turnLeft();
-                    }
-                    if (b.Button("Turn Right")) {
-                        cube->effectSnake.turnRight();
-                    }
+                b.beginRow();
+                if (b.Button("◀ Left")) {
+                    cube->effectSnake.turnLeft();
                 }
+                if (b.Button("Right ▶")) {
+                    cube->effectSnake.turnRight();
+                }
+                b.endRow();
                 if (b.Button("Activate"))
                 {
                     Serial.println("set active SNAKE");
@@ -617,6 +617,20 @@ void build(sets::Builder &b)
             {
                 sets::Menu m(b, "Tetris Fall");
                 b.Slider("tf.speed"_h, "Fall Speed", 0.05f, 0.3f, 0.02f, "", &tetrisFallData.fallSpeed);
+                b.beginRow();
+                if (b.Button("◀")) {
+                    cube->effectTetrisFall.moveLeft();
+                }
+                if (b.Button("▼")) {
+                    cube->effectTetrisFall.drop();
+                }
+                if (b.Button("▶")) {
+                    cube->effectTetrisFall.moveRight();
+                }
+                b.endRow();
+                if (b.Button("↻ Rotate")) {
+                    cube->effectTetrisFall.rotate();
+                }
                 if (b.Button("Activate")) {
                     cube->effectTetrisFall.fallSpeed = tetrisFallData.fallSpeed;
                     cube->setActiveEffect(CubeEffects::TETRIS_FALL);
