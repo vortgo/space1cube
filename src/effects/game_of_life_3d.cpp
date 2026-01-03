@@ -45,6 +45,13 @@ void EffectGameOfLife3D::render(Cube& cube, unsigned long deltaTime) {
     cube.render();
 }
 
+void EffectGameOfLife3D::reset() {
+    randomize();
+    generation = 0;
+    stagnant = 0;
+    stepTimer = 0;
+}
+
 void EffectGameOfLife3D::randomize() {
     for (int f = 0; f < 6; f++) {
         for (int x = 0; x < 8; x++) {
