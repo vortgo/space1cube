@@ -26,7 +26,6 @@ enum class CubeEffects
     ROTATE,
     ROMB,
     AURORA,
-    LAVA_LAMP,
     GRAVITY,
     PARTICLES,
     SNAKE,
@@ -34,11 +33,9 @@ enum class CubeEffects
     CYBER_GHOST,
     SPIRIT_WIND,
     VORTEX,
-    RAINDROP,
     PLASMA,
     MATRIX_RAIN,
     GAME_OF_LIFE,
-    FIREWORKS,
     STARFIELD,
     LIGHTNING,
     BOUNCING_BALLS,
@@ -48,21 +45,15 @@ enum class CubeEffects
     COMET_TRAIL,
     SPARKLE,
     CORNER_PULSE,
-    SCAN_LINE,
-    PIXEL_SORT,
     GROWING_SQUARES,
     RANDOM_WALK,
     TETRIS_FALL,
     FACE_NUMBERS,
     // 3D Effects (with correct cube geometry)
     ROLLING_BALL_3D,
-    SNAKE_3D,
     WAVE_3D,
-    RAIN_3D,
     SPIRAL_3D,
     PULSE_3D,
-    FIRE_3D,
-    METEOR_3D,
     SCAN_3D,
     DNA_3D,
     CROSS_3D,
@@ -117,30 +108,6 @@ private:
     unsigned long lastTime = 0;
     unsigned long renderTime = 10;
 };
-
-class EffectRaindropRipples : public Effect {
-public:
-    void render(Cube& cube, unsigned long deltaTime) override;
-
-    float dropInterval = 3.0f;  // Интервал между каплями (сек)
-
-private:
-    struct Ripple {
-        int x, y;
-        float radii[3];
-        float time;
-        uint32_t color;
-    };
-
-    Ripple ripple;
-    bool rippleActive = false;
-    float timeSinceLastDrop = 0.0f;
-    uint32_t getRandomColor();
-    uint32_t interpolateColor(uint32_t baseColor, float distanceFactor);
-    void spawnRaindrop();
-};
-
-
 
 class EffectVortex : public Effect {
 public:
@@ -360,16 +327,6 @@ private:
     std::vector<std::reference_wrapper<Effect>>effects;
 
     unsigned long accumulatedTime = 0;
-};
-
-class EffectLavaLamp : public Effect {
-public:
-    float period = 7000; // Плавный цикл эффекта
-    void render(Cube& cube, unsigned long deltaTime) override;
-
-private:
-    float accumulatedTime = 0.0f;
-    unsigned long effectTime = 0;
 };
 
 class EffectDice final : public Effect
@@ -654,47 +611,6 @@ private:
     uint32_t getRandomColor();
 };
 
-// ============ FIREWORKS EFFECT ============
-class EffectFireworks : public Effect {
-public:
-    EffectFireworks();
-    void render(Cube& cube, unsigned long deltaTime) override;
-
-    float launchRate = 0.02f;      // Частота запуска ракет
-    float gravity = 0.05f;          // Гравитация
-    int sparkCount = 12;            // Количество искр при взрыве
-
-private:
-    static const int GRID_W = 8;
-    static const int GRID_H = 8;
-    static const int MAX_SPARKS = 50;
-
-    struct Spark {
-        float x, y;
-        float vx, vy;
-        uint32_t color;
-        float life;
-        bool active;
-    };
-
-    struct Rocket {
-        float x, y;
-        float vy;
-        uint32_t color;
-        bool active;
-        bool exploded;
-    };
-
-    Spark sparks[MAX_SPARKS];
-    Rocket rocket;
-    float brightness[GRID_W][GRID_H];
-    uint32_t colors[GRID_W][GRID_H];
-
-    void launchRocket();
-    void explode();
-    uint32_t getRandomColor();
-};
-
 // ============ STARFIELD EFFECT ============
 class EffectStarfield : public Effect {
 public:
@@ -889,50 +805,6 @@ private:
     uint32_t getRandomColor();
 };
 
-// ============ SCAN LINE EFFECT ============
-class EffectScanLine : public Effect {
-public:
-    EffectScanLine();
-    void render(Cube& cube, unsigned long deltaTime) override;
-
-    float speed = 0.15f;            // Скорость сканирования
-    bool vertical = false;          // Вертикальное направление
-
-private:
-    static const int GRID_W = 8;
-    static const int GRID_H = 8;
-
-    float position;
-    int direction;
-    uint32_t lineColor;
-    float brightness[GRID_W][GRID_H];
-
-    uint32_t getRandomColor();
-};
-
-// ============ PIXEL SORT EFFECT ============
-class EffectPixelSort : public Effect {
-public:
-    EffectPixelSort();
-    void render(Cube& cube, unsigned long deltaTime) override;
-
-    float sortSpeed = 0.05f;        // Скорость сортировки
-    float shuffleTime = 3000.0f;    // Время до перемешивания
-
-private:
-    static const int GRID_W = 8;
-    static const int GRID_H = 8;
-
-    uint32_t pixels[GRID_W * GRID_H];
-    float timeSinceShuffle;
-    bool sorting;
-    int sortStep;
-
-    void shuffle();
-    void sortOneStep();
-    uint32_t hueToColor(int hue);
-};
-
 // ============ GROWING SQUARES EFFECT ============
 class EffectGrowingSquares : public Effect {
 public:
@@ -1053,22 +925,6 @@ private:
     uint32_t dimColor(uint32_t color, float factor);
 };
 
-// ============ SNAKE 3D EFFECT ============
-class EffectSnake3D : public Effect {
-public:
-    EffectSnake3D();
-    void render(Cube& cube, unsigned long deltaTime) override;
-    float speed = 0.12f;
-    int maxLength = 25;
-private:
-    std::vector<CubePos> snake;
-    int dirX, dirY;
-    float moveTimer;
-    CubePos food;
-    void reset();
-    void spawnFood();
-};
-
 // ============ WAVE 3D EFFECT ============
 class EffectWave3D : public Effect {
 public:
@@ -1080,30 +936,6 @@ private:
     float time;
     CubePos center;
     uint32_t hsvToColor(float h, float s, float v);
-};
-
-// ============ RAIN 3D EFFECT ============
-class EffectRain3D : public Effect {
-public:
-    EffectRain3D();
-    void render(Cube& cube, unsigned long deltaTime) override;
-    float intensity = 0.3f;
-private:
-    static const int MAX_DROPS = 30;
-    struct Drop {
-        CubePos pos;
-        CubePos trailPos[8];
-        int dirX, dirY;
-        float speed;
-        float moveAccum;
-        int trail;
-        uint32_t color;
-        bool active;
-    };
-    Drop drops[MAX_DROPS];
-    float spawnTimer;
-    void spawnDrop();
-    void updateDropDirection(Drop& drop);
 };
 
 // ============ SPIRAL 3D EFFECT ============
@@ -1128,43 +960,6 @@ public:
     int rings = 3;
 private:
     float phase;
-    uint32_t hsvToColor(float h, float s, float v);
-};
-
-// ============ FIRE 3D EFFECT ============
-class EffectFire3D : public Effect {
-public:
-    EffectFire3D();
-    void render(Cube& cube, unsigned long deltaTime) override;
-    float cooldown = 2.0f;
-    float sparking = 0.6f;
-private:
-    uint8_t heat[6][8][8];
-    uint32_t heatToColor(uint8_t temperature);
-};
-
-// ============ METEOR 3D EFFECT ============
-class EffectMeteor3D : public Effect {
-public:
-    EffectMeteor3D();
-    void render(Cube& cube, unsigned long deltaTime) override;
-    float intensity = 0.4f;
-private:
-    static const int MAX_METEORS = 8;
-    struct Meteor {
-        CubePos pos;
-        CubePos trail[12];
-        int dirX, dirY;
-        float speed;
-        float moveAccum;
-        int length;
-        int hue;
-        int traveled;
-        bool active;
-    };
-    Meteor meteors[MAX_METEORS];
-    float spawnTimer;
-    void spawnMeteor();
     uint32_t hsvToColor(float h, float s, float v);
 };
 
@@ -1230,7 +1025,6 @@ public:
     EffectRotate effectRotate = EffectRotate();
     EffectRomb effectRomb = EffectRomb();
     EffectAurora effectAurora = EffectAurora();
-    EffectLavaLamp effectLavaLamp = EffectLavaLamp();
     EffectGravityParticles effectGravity = EffectGravityParticles();
     EffectPhysicsParticles effectParticles = EffectPhysicsParticles();
     EffectSnake effectSnake = EffectSnake();
@@ -1238,11 +1032,9 @@ public:
     EffectCyberGhost effectCyberGhost = EffectCyberGhost();
     EffectSpiritWind effectSpiritWind = EffectSpiritWind();
     EffectVortex effectVortex = EffectVortex();
-    EffectRaindropRipples effectRaindropRipples = EffectRaindropRipples();
     EffectPlasma effectPlasma = EffectPlasma();
     EffectMatrixRain effectMatrixRain = EffectMatrixRain();
     EffectGameOfLife effectGameOfLife = EffectGameOfLife();
-    EffectFireworks effectFireworks = EffectFireworks();
     EffectStarfield effectStarfield = EffectStarfield();
     EffectLightning effectLightning = EffectLightning();
     EffectBouncingBalls effectBouncingBalls = EffectBouncingBalls();
@@ -1252,21 +1044,15 @@ public:
     EffectCometTrail effectCometTrail = EffectCometTrail();
     EffectSparkle effectSparkle = EffectSparkle();
     EffectCornerPulse effectCornerPulse = EffectCornerPulse();
-    EffectScanLine effectScanLine = EffectScanLine();
-    EffectPixelSort effectPixelSort = EffectPixelSort();
     EffectGrowingSquares effectGrowingSquares = EffectGrowingSquares();
     EffectRandomWalk effectRandomWalk = EffectRandomWalk();
     EffectTetrisFall effectTetrisFall = EffectTetrisFall();
     EffectFaceNumbers effectFaceNumbers = EffectFaceNumbers();
     // 3D Effects (with correct cube geometry)
     EffectRollingBall3D effectRollingBall3D = EffectRollingBall3D();
-    EffectSnake3D effectSnake3D = EffectSnake3D();
     EffectWave3D effectWave3D = EffectWave3D();
-    EffectRain3D effectRain3D = EffectRain3D();
     EffectSpiral3D effectSpiral3D = EffectSpiral3D();
     EffectPulse3D effectPulse3D = EffectPulse3D();
-    EffectFire3D effectFire3D = EffectFire3D();
-    EffectMeteor3D effectMeteor3D = EffectMeteor3D();
     EffectScan3D effectScan3D = EffectScan3D();
     EffectDNA3D effectDNA3D = EffectDNA3D();
     EffectCross3D effectCross3D = EffectCross3D();
@@ -1339,10 +1125,6 @@ public:
             activeEffect = &effectAurora;
             Serial.println("activeEffect AURORA");
             break;
-        case CubeEffects::LAVA_LAMP:
-            activeEffect = &effectLavaLamp;
-            Serial.println("activeEffect LAVA_LAMP");
-            break;
         case CubeEffects::GRAVITY:
             activeEffect = &effectGravity;
             Serial.println("activeEffect GRAVITY");
@@ -1371,10 +1153,6 @@ public:
             activeEffect = &effectVortex;
             Serial.println("activeEffect VORTEX");
             break;
-        case CubeEffects::RAINDROP:
-            activeEffect = &effectRaindropRipples;
-            Serial.println("activeEffect RAINDROP");
-            break;
         case CubeEffects::PLASMA:
             activeEffect = &effectPlasma;
             Serial.println("activeEffect PLASMA");
@@ -1386,10 +1164,6 @@ public:
         case CubeEffects::GAME_OF_LIFE:
             activeEffect = &effectGameOfLife;
             Serial.println("activeEffect GAME_OF_LIFE");
-            break;
-        case CubeEffects::FIREWORKS:
-            activeEffect = &effectFireworks;
-            Serial.println("activeEffect FIREWORKS");
             break;
         case CubeEffects::STARFIELD:
             activeEffect = &effectStarfield;
@@ -1427,14 +1201,6 @@ public:
             activeEffect = &effectCornerPulse;
             Serial.println("activeEffect CORNER_PULSE");
             break;
-        case CubeEffects::SCAN_LINE:
-            activeEffect = &effectScanLine;
-            Serial.println("activeEffect SCAN_LINE");
-            break;
-        case CubeEffects::PIXEL_SORT:
-            activeEffect = &effectPixelSort;
-            Serial.println("activeEffect PIXEL_SORT");
-            break;
         case CubeEffects::GROWING_SQUARES:
             activeEffect = &effectGrowingSquares;
             Serial.println("activeEffect GROWING_SQUARES");
@@ -1456,17 +1222,9 @@ public:
             activeEffect = &effectRollingBall3D;
             Serial.println("activeEffect ROLLING_BALL_3D");
             break;
-        case CubeEffects::SNAKE_3D:
-            activeEffect = &effectSnake3D;
-            Serial.println("activeEffect SNAKE_3D");
-            break;
         case CubeEffects::WAVE_3D:
             activeEffect = &effectWave3D;
             Serial.println("activeEffect WAVE_3D");
-            break;
-        case CubeEffects::RAIN_3D:
-            activeEffect = &effectRain3D;
-            Serial.println("activeEffect RAIN_3D");
             break;
         case CubeEffects::SPIRAL_3D:
             activeEffect = &effectSpiral3D;
@@ -1475,14 +1233,6 @@ public:
         case CubeEffects::PULSE_3D:
             activeEffect = &effectPulse3D;
             Serial.println("activeEffect PULSE_3D");
-            break;
-        case CubeEffects::FIRE_3D:
-            activeEffect = &effectFire3D;
-            Serial.println("activeEffect FIRE_3D");
-            break;
-        case CubeEffects::METEOR_3D:
-            activeEffect = &effectMeteor3D;
-            Serial.println("activeEffect METEOR_3D");
             break;
         case CubeEffects::SCAN_3D:
             activeEffect = &effectScan3D;
@@ -1558,7 +1308,7 @@ public:
 
     std::vector<std::reference_wrapper<Effect>> getEffectsForRotate()
     {
-        return {breathingHeart, fallingStar, soundLevel, effectSpiral, fadePixels, effectDice, effectRomb, effectAurora, effectLavaLamp, effectGravity, effectParticles, effectSnake, effectDynamicGroups, effectCyberGhost, effectSpiritWind, effectVortex, effectRaindropRipples, effectPlasma, effectMatrixRain, effectGameOfLife, effectFireworks, effectStarfield, effectLightning, effectBouncingBalls, effectRipplePond, effectFireflies, effectHeartbeatPulse, effectCometTrail, effectSparkle, effectCornerPulse, effectScanLine, effectPixelSort, effectGrowingSquares, effectRandomWalk, effectTetrisFall, effectRollingBall3D, effectSnake3D, effectWave3D, effectRain3D, effectSpiral3D, effectPulse3D, effectFire3D, effectMeteor3D, effectScan3D, effectDNA3D};
+        return {breathingHeart, fallingStar, soundLevel, effectSpiral, fadePixels, effectDice, effectRomb, effectAurora, effectGravity, effectParticles, effectSnake, effectDynamicGroups, effectCyberGhost, effectSpiritWind, effectVortex, effectPlasma, effectMatrixRain, effectGameOfLife, effectStarfield, effectLightning, effectBouncingBalls, effectRipplePond, effectFireflies, effectHeartbeatPulse, effectCometTrail, effectSparkle, effectCornerPulse, effectGrowingSquares, effectRandomWalk, effectTetrisFall, effectRollingBall3D, effectWave3D, effectSpiral3D, effectPulse3D, effectScan3D, effectDNA3D};
     }
 
 private:

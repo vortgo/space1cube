@@ -94,12 +94,6 @@ struct AuroraData
 };
 AuroraData auroraData;
 
-struct LavaLampData
-{
-    float period = 7000;
-};
-LavaLampData lavaLampData;
-
 struct GravityData
 {
     int maxParticles = 10;
@@ -114,9 +108,6 @@ struct SnakeData
     bool autoMode = true;
 };
 SnakeData snakeData;
-
-struct FireworksData { float launchRate = 0.02f; float gravity = 0.05f; int sparkCount = 12; };
-FireworksData fireworksData;
 
 struct StarfieldData { float speed = 0.1f; int starCount = 15; };
 StarfieldData starfieldData;
@@ -145,12 +136,6 @@ SparkleData sparkleData;
 struct CornerPulseData { float pulseSpeed = 0.1f; float interval = 2000.0f; };
 CornerPulseData cornerPulseData;
 
-struct ScanLineData { float speed = 0.15f; bool vertical = false; };
-ScanLineData scanLineData;
-
-struct PixelSortData { float sortSpeed = 0.05f; float shuffleTime = 3000.0f; };
-PixelSortData pixelSortData;
-
 struct GrowingSquaresData { float growSpeed = 0.08f; };
 GrowingSquaresData growingSquaresData;
 
@@ -167,26 +152,14 @@ FaceNumbersData faceNumbersData;
 struct RollingBall3DData { float speed = 0.15f; int ballSize = 2; int trailLength = 8; };
 RollingBall3DData rollingBall3DData;
 
-struct Snake3DData { float speed = 0.12f; int maxLength = 25; };
-Snake3DData snake3DData;
-
 struct Wave3DData { float waveSpeed = 0.08f; float frequency = 0.5f; };
 Wave3DData wave3DData;
-
-struct Rain3DData { float intensity = 0.3f; };
-Rain3DData rain3DData;
 
 struct Spiral3DData { float speed = 1.5f; float spiralTightness = 25.0f; int arms = 3; };
 Spiral3DData spiral3DData;
 
 struct Pulse3DData { float speed = 0.15f; int rings = 3; };
 Pulse3DData pulse3DData;
-
-struct Fire3DData { float cooldown = 2.0f; float sparking = 0.6f; };
-Fire3DData fire3DData;
-
-struct Meteor3DData { float intensity = 0.4f; };
-Meteor3DData meteor3DData;
 
 struct Scan3DData { float speed = 0.2f; float thickness = 2.0f; };
 Scan3DData scan3DData;
@@ -212,12 +185,6 @@ struct SpiritWindData
     float waveSpeed = 0.2f;
 };
 SpiritWindData spiritWindData;
-
-struct RaindropData
-{
-    float dropInterval = 3.0f;
-};
-RaindropData raindropData;
 
 struct RotateData
 {
@@ -389,17 +356,6 @@ void build(sets::Builder &b)
             }
 
             {
-                sets::Menu m(b, "Lava Lamp");
-                b.Slider("lavaLampData.period"_h, "Period", 2000, 15000, 100, "", &lavaLampData.period);
-                if (b.Button("Activate"))
-                {
-                    Serial.println("set active LAVA_LAMP");
-                    cube->effectLavaLamp.period = lavaLampData.period;
-                    cube->setActiveEffect(CubeEffects::LAVA_LAMP);
-                }
-            }
-
-            {
                 sets::Menu m(b, "Gravity");
                 b.Slider("gravityData.particles"_h, "Particles", 5, 20, 1, "", &gravityData.maxParticles);
                 b.Slider("gravityData.gravity"_h, "Gravity", 0.005f, 0.05f, 0.005f, "", &gravityData.gravityStrength);
@@ -495,17 +451,6 @@ void build(sets::Builder &b)
             }
 
             {
-                sets::Menu m(b, "Raindrop");
-                b.Slider("raindrop.interval"_h, "Drop Interval", 0.5f, 5.0f, 0.5f, "sec", &raindropData.dropInterval);
-                if (b.Button("Activate"))
-                {
-                    Serial.println("set active RAINDROP");
-                    cube->effectRaindropRipples.dropInterval = raindropData.dropInterval;
-                    cube->setActiveEffect(CubeEffects::RAINDROP);
-                }
-            }
-
-            {
                 sets::Menu m(b, "Plasma");
                 b.Slider("plasma.speed"_h, "Speed", 0.01f, 0.15f, 0.01f, "", &plasmaData.speed);
                 b.Slider("plasma.scale"_h, "Scale", 2.0f, 8.0f, 0.5f, "", &plasmaData.scale);
@@ -547,19 +492,6 @@ void build(sets::Builder &b)
                     cube->effectGameOfLife.randomizeThreshold = gameOfLifeData.randomizeThreshold;
                     cube->effectGameOfLife.initialDensity = gameOfLifeData.initialDensity;
                     cube->setActiveEffect(CubeEffects::GAME_OF_LIFE);
-                }
-            }
-
-            {
-                sets::Menu m(b, "Fireworks");
-                b.Slider("fw.rate"_h, "Launch Rate", 0.01f, 0.1f, 0.01f, "", &fireworksData.launchRate);
-                b.Slider("fw.gravity"_h, "Gravity", 0.02f, 0.1f, 0.01f, "", &fireworksData.gravity);
-                b.Slider("fw.sparks"_h, "Spark Count", 6, 20, 2, "", &fireworksData.sparkCount);
-                if (b.Button("Activate")) {
-                    cube->effectFireworks.launchRate = fireworksData.launchRate;
-                    cube->effectFireworks.gravity = fireworksData.gravity;
-                    cube->effectFireworks.sparkCount = fireworksData.sparkCount;
-                    cube->setActiveEffect(CubeEffects::FIREWORKS);
                 }
             }
 
@@ -661,30 +593,6 @@ void build(sets::Builder &b)
             }
 
             {
-                sets::Menu m(b, "Scan Line");
-                b.Slider("sl.speed"_h, "Speed", 0.05f, 0.3f, 0.02f, "", &scanLineData.speed);
-                if (b.Switch("sl.vert"_h, "Vertical", &scanLineData.vertical)) {
-                    cube->effectScanLine.vertical = scanLineData.vertical;
-                }
-                if (b.Button("Activate")) {
-                    cube->effectScanLine.speed = scanLineData.speed;
-                    cube->effectScanLine.vertical = scanLineData.vertical;
-                    cube->setActiveEffect(CubeEffects::SCAN_LINE);
-                }
-            }
-
-            {
-                sets::Menu m(b, "Pixel Sort");
-                b.Slider("ps.speed"_h, "Sort Speed", 0.02f, 0.15f, 0.01f, "", &pixelSortData.sortSpeed);
-                b.Slider("ps.shuffle"_h, "Shuffle Time (ms)", 2000.0f, 6000.0f, 500.0f, "", &pixelSortData.shuffleTime);
-                if (b.Button("Activate")) {
-                    cube->effectPixelSort.sortSpeed = pixelSortData.sortSpeed;
-                    cube->effectPixelSort.shuffleTime = pixelSortData.shuffleTime;
-                    cube->setActiveEffect(CubeEffects::PIXEL_SORT);
-                }
-            }
-
-            {
                 sets::Menu m(b, "Growing Squares");
                 b.Slider("gs.speed"_h, "Grow Speed", 0.03f, 0.15f, 0.01f, "", &growingSquaresData.growSpeed);
                 if (b.Button("Activate")) {
@@ -745,17 +653,6 @@ void build(sets::Builder &b)
             }
 
             {
-                sets::Menu m(b, "Snake 3D");
-                b.Slider("s3d.speed"_h, "Speed", 0.05f, 0.25f, 0.02f, "", &snake3DData.speed);
-                b.Slider("s3d.len"_h, "Max Length", 10, 40, 2, "", &snake3DData.maxLength);
-                if (b.Button("Activate")) {
-                    cube->effectSnake3D.speed = snake3DData.speed;
-                    cube->effectSnake3D.maxLength = snake3DData.maxLength;
-                    cube->setActiveEffect(CubeEffects::SNAKE_3D);
-                }
-            }
-
-            {
                 sets::Menu m(b, "Wave 3D");
                 b.Slider("w3d.speed"_h, "Wave Speed", 0.03f, 0.15f, 0.01f, "", &wave3DData.waveSpeed);
                 b.Slider("w3d.freq"_h, "Frequency", 0.2f, 1.0f, 0.1f, "", &wave3DData.frequency);
@@ -763,15 +660,6 @@ void build(sets::Builder &b)
                     cube->effectWave3D.waveSpeed = wave3DData.waveSpeed;
                     cube->effectWave3D.frequency = wave3DData.frequency;
                     cube->setActiveEffect(CubeEffects::WAVE_3D);
-                }
-            }
-
-            {
-                sets::Menu m(b, "Rain 3D");
-                b.Slider("r3d.int"_h, "Intensity", 0.1f, 0.8f, 0.1f, "", &rain3DData.intensity);
-                if (b.Button("Activate")) {
-                    cube->effectRain3D.intensity = rain3DData.intensity;
-                    cube->setActiveEffect(CubeEffects::RAIN_3D);
                 }
             }
 
@@ -796,26 +684,6 @@ void build(sets::Builder &b)
                     cube->effectPulse3D.speed = pulse3DData.speed;
                     cube->effectPulse3D.rings = pulse3DData.rings;
                     cube->setActiveEffect(CubeEffects::PULSE_3D);
-                }
-            }
-
-            {
-                sets::Menu m(b, "Fire 3D");
-                b.Slider("fi3d.cool"_h, "Cooldown", 1.0f, 5.0f, 0.5f, "", &fire3DData.cooldown);
-                b.Slider("fi3d.spark"_h, "Sparking", 0.3f, 0.9f, 0.1f, "", &fire3DData.sparking);
-                if (b.Button("Activate")) {
-                    cube->effectFire3D.cooldown = fire3DData.cooldown;
-                    cube->effectFire3D.sparking = fire3DData.sparking;
-                    cube->setActiveEffect(CubeEffects::FIRE_3D);
-                }
-            }
-
-            {
-                sets::Menu m(b, "Meteor 3D");
-                b.Slider("me3d.int"_h, "Intensity", 0.2f, 0.8f, 0.1f, "", &meteor3DData.intensity);
-                if (b.Button("Activate")) {
-                    cube->effectMeteor3D.intensity = meteor3DData.intensity;
-                    cube->setActiveEffect(CubeEffects::METEOR_3D);
                 }
             }
 

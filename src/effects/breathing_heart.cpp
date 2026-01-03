@@ -70,23 +70,15 @@ uint32_t interpolateColor(uint32_t c1, uint32_t c2, float factor) {
         
         for (int y = 0; y < 8; y++) {
             for (int x = 0; x < 8; x++) {
-                // Определяем, входит ли пиксель в шаблон большого сердца
-                float valueBig = static_cast<float>(bigHeart[y][x]);
-                
-                // Интерполяция яркости – от минимальной яркости (0.2) для маленького сердца до полной яркости для большого
-                float finalBrightness = blend * valueBig;  // Только для большого сердца
-                
-                // Интерполяция цвета: от тёмно-красного до ярко-красного
-                uint32_t currentColor = interpolateColor(darkRed, brightRed, blend);
-                
-                // Добавляем случайную вариацию для плавности (делаем анимацию менее механической)
-                float noise = ((float)random(-5, 6)) / 100.0f;  // случайное число от -0.05 до +0.05
-                finalBrightness += noise;
-                if (finalBrightness < 0.0f) finalBrightness = 0.0f;
-                if (finalBrightness > 1.0f) finalBrightness = 1.0f;
-                
-                // Отображаем пиксель с вычисленным цветом и яркостью
-                f.setPixel(x, y, currentColor, finalBrightness);
+                // Проверяем, входит ли пиксель в шаблон сердца
+                if (bigHeart[y][x] == 0) {
+                    // Пиксель вне сердца - ставим чёрный
+                    f.setPixel(x, y, 0x000000);
+                } else {
+                    // Пиксель внутри сердца - интерполяция цвета
+                    uint32_t currentColor = interpolateColor(darkRed, brightRed, blend);
+                    f.setPixel(x, y, currentColor);
+                }
             }
         }
     }
