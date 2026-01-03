@@ -24,25 +24,73 @@ void moveAlongRing(CubePos& pos, int ringType) {
         // right: dy=+1 (down), bottom: dx=+1, left: dy=-1 (up), top: dx=-1
         switch (pos.face) {
             case 3: dy = 1; break;   // right: down
-            case 5: dx = 1; break;   // bottom: toward left (dx+)
+            case 5: dx = 1; break;   // bottom: toward left (x=0→x=7)
             case 2: dy = -1; break;  // left: up
-            case 4: dx = -1; break;  // top: toward right (dx-)
+            case 4: dx = -1; break;  // top: toward right (x=7→x=0)
             default: dy = 1; break;
         }
     }
     else if (ringType == 2) {
         // Vertical ring through front/top/back/bottom
-        // front: dy=-1 (up), top: dy=+1 (toward back), back: dy=+1 (down), bottom: dy=-1 (toward front)
+        // front: dy=-1 (up), top: dy=+1 (toward back), back: dy=+1 (down), bottom: dy=+1 (toward front, y=0→y=7)
         switch (pos.face) {
             case 0: dy = -1; break;  // front: up
-            case 4: dy = 1; break;   // top: toward back
+            case 4: dy = 1; break;   // top: toward back (y=0→y=7)
             case 1: dy = 1; break;   // back: down
-            case 5: dy = -1; break;  // bottom: toward front
+            case 5: dy = 1; break;   // bottom: toward front (y=0→y=7)
             default: dy = -1; break;
         }
     }
 
     moveOnCube(pos, dx, dy);
+}
+
+// Get width offset perpendicular to movement, accounting for face orientation
+// Width direction must be consistent across face transitions to maintain strip alignment
+void getWidthOffset(int face, int ringType, int w, int& dx, int& dy) {
+    dx = 0;
+    dy = 0;
+
+    if (ringType == 0) {
+        // Horizontal ring: movement is dx, width is dy
+        dy = w;
+    }
+    else if (ringType == 1) {
+        // Green ring (right/bottom/left/top)
+        // Width extends "away from front" to maintain column alignment across transitions
+        switch (face) {
+            case 3: // right: x increases away from front, width +dx
+                dx = w;
+                break;
+            case 5: // bottom: y decreases away from front (y=7 is front), width -dy
+                dy = -w;
+                break;
+            case 2: // left: x decreases away from front (x=7 is front), width -dx
+                dx = -w;
+                break;
+            case 4: // top: y increases away from front (y=0 is front), width +dy
+                dy = w;
+                break;
+        }
+    }
+    else if (ringType == 2) {
+        // Blue ring (front/top/back/bottom): movement is always dy
+        // Width extends "toward right" (from left edge perspective) to maintain column alignment
+        switch (face) {
+            case 0: // front: x increases toward right, width +dx
+                dx = w;
+                break;
+            case 4: // top: x decreases toward right (x=7 is left), width -dx
+                dx = -w;
+                break;
+            case 1: // back: x decreases toward right (x=7 is left), width -dx
+                dx = -w;
+                break;
+            case 5: // bottom: x decreases toward right (x=7 is left), width -dx
+                dx = -w;
+                break;
+        }
+    }
 }
 
 void EffectCross3D::render(Cube& cube, unsigned long deltaTime) {
@@ -71,7 +119,9 @@ void EffectCross3D::render(Cube& cube, unsigned long deltaTime) {
 
         for (int i = 0; i < stripLength; i++) {
             for (int w = 0; w < stripWidth; w++) {
-                CubePos drawPos = getNeighbor(currentPos.face, currentPos.x, currentPos.y, 0, w);
+                int wdx, wdy;
+                getWidthOffset(currentPos.face, 0, w, wdx, wdy);
+                CubePos drawPos = getNeighbor(currentPos.face, currentPos.x, currentPos.y, wdx, wdy);
                 faces[drawPos.face]->setPixel(drawPos.x, drawPos.y, color1);
             }
             moveAlongRing(currentPos, 0);
@@ -91,7 +141,9 @@ void EffectCross3D::render(Cube& cube, unsigned long deltaTime) {
 
         for (int i = 0; i < stripLength; i++) {
             for (int w = 0; w < stripWidth; w++) {
-                CubePos drawPos = getNeighbor(currentPos.face, currentPos.x, currentPos.y, w, 0);
+                int wdx, wdy;
+                getWidthOffset(currentPos.face, 1, w, wdx, wdy);
+                CubePos drawPos = getNeighbor(currentPos.face, currentPos.x, currentPos.y, wdx, wdy);
                 faces[drawPos.face]->setPixel(drawPos.x, drawPos.y, color2);
             }
             moveAlongRing(currentPos, 1);
@@ -99,7 +151,7 @@ void EffectCross3D::render(Cube& cube, unsigned long deltaTime) {
     }
 
     // Ring 3 (BLUE): Vertical ring through front/back
-    // Path: front(up) → top(dy+) → back(down) → bottom(dy-) → front
+    // Path: front(up) → top(dy+) → back(down) → bottom(dy+) → front
     {
         CubePos startPos = {0, 3, 7};  // front, x=3, y=7
         CubePos currentPos = startPos;
@@ -111,7 +163,9 @@ void EffectCross3D::render(Cube& cube, unsigned long deltaTime) {
 
         for (int i = 0; i < stripLength; i++) {
             for (int w = 0; w < stripWidth; w++) {
-                CubePos drawPos = getNeighbor(currentPos.face, currentPos.x, currentPos.y, w, 0);
+                int wdx, wdy;
+                getWidthOffset(currentPos.face, 2, w, wdx, wdy);
+                CubePos drawPos = getNeighbor(currentPos.face, currentPos.x, currentPos.y, wdx, wdy);
                 faces[drawPos.face]->setPixel(drawPos.x, drawPos.y, color3);
             }
             moveAlongRing(currentPos, 2);
